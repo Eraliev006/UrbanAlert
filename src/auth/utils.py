@@ -16,7 +16,7 @@ class TokenType(enum.Enum):
 
 def _create_token(
         payload: dict[str, Any],
-        private_key: str,
+        secret_key: str,
         algorithm: str,
         token_type: TokenType,
         access_expire_in_minutes: int = settings.jwt.access_expires_in_minutes,
@@ -33,23 +33,20 @@ def _create_token(
             'type': token_type.value,
             'exp': exp
         },
-        key=private_key,
+        key=secret_key,
         algorithm=algorithm
     )
 
 def create_tokens(
         payload: dict[str, Any],
-        private_key_path: str = settings.jwt.private_key,
+        secret_key: str = settings.jwt.secret_key,
         algorithm: str = settings.jwt.algorithm,
         access_expire_in_minutes: int = settings.jwt.access_expires_in_minutes,
         refresh_expire_in_minutes: int = settings.jwt.refresh_expires_in_minutes,
 ) -> TokenPairs:
 
-    with open(private_key_path, 'r') as f:
-        private_key = f.read()
-
-        access_token = _create_token(payload, private_key, algorithm, TokenType.access, access_expire_in_minutes)
-        refresh_token = _create_token(payload, private_key, algorithm, TokenType.refresh, refresh_expire_in_minutes)
+    access_token = _create_token(payload, secret_key, algorithm, TokenType.access, access_expire_in_minutes)
+    refresh_token = _create_token(payload, secret_key, algorithm, TokenType.refresh, refresh_expire_in_minutes)
 
     return TokenPairs(
         access_token = access_token,
@@ -59,21 +56,18 @@ def create_tokens(
 def decode_token(
         token: str,
         algorithm: str = settings.jwt.algorithm,
-        public_key_path: str = settings.jwt.public_key,
+        secret_key = settings.jwt.secret_key
 ):
-    with open(public_key_path, 'r') as f:
-        public_key = f.read()
-        try:
+    try:
+        return jwt.decode(
+            jwt = token,
+            algorithms=[algorithm],
+            key=secret_key,
+        )
 
-            return jwt.decode(
-                jwt = token,
-                algorithms=[algorithm],
-                key=public_key,
-            )
+    except InvalidSignatureError:
+        raise InvalidSignatureException
 
-        except InvalidSignatureError:
-            raise InvalidSignatureException
-
-        except ExpiredSignatureError:
-            raise ExpiredTokenSignatureException
+    except ExpiredSignatureError:
+        raise ExpiredTokenSignatureException
 
