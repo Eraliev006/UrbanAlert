@@ -6,8 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 class JWT(BaseModel):
-    public_key: str
-    private_key: str
+    secret_key: str
     access_expires_in_minutes: int
     refresh_expires_in_minutes: int
     algorithm: str
