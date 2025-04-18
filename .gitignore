@@ -1,0 +1,21 @@
+# Виртуальное окружение
+venv/
+env/
+.venv/
+.env
+
+
+# Кэшированные файлы Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Лог-файлы
+*.log
+
+# Настройки IDE
+.idea/
+.vscode/
+
+# Alembic
+alembic/versions/*.pyc
