@@ -19,3 +19,7 @@ __pycache__/
 
 # Alembic
 alembic/versions/*.pyc
+
+# Ignoring JWT Private & Public key
+private_key.pem
+public_key.pem
