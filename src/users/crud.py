@@ -51,7 +51,7 @@ async def get_user_by_id(db_session: AsyncSession, user_id: int) -> Optional[Use
 async def update_user_by_id(db_session: AsyncSession, user_id: int, new_user_data: UserUpdate) -> Optional[UserRead]:
     """
     Async method to update user by id
-    :param session: take async session to make request to db
+    :param db_session: take async session to make request to db
     :param user_id: take user ids to get user by this id and update
     :param new_user_data: new user datas
     :return: UserRead class, return updated user or exception
