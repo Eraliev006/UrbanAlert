@@ -37,3 +37,8 @@ def decode_token(
     except ExpiredSignatureError:
         raise ExpiredTokenSignatureException
 
+def hash_password(password: bytes) -> str:
+    """Hash password"""
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+    return pwd_context.hash(password)
