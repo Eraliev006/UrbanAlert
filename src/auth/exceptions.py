@@ -28,3 +28,10 @@ class EmailAlreadyExists(HTTPException):
             status_code=status.HTTP_409_CONFLICT,
             detail=f'Email - {email} already exists'
         )
+
+class UserWithEmailNotFound(HTTPException):
+    def __init__(self, email: str):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'Email - {email} is not found'
+        )
