@@ -8,6 +8,7 @@ from sqlmodel import SQLModel, Field
 class BaseUser(SQLModel):
     first_name: str = Field(max_length=100)
     last_name: str = Field(max_length=100)
+    email: EmailStr = Field(unique=True, index=True, nullable=False)
     avatar_url: Optional[str] = Field(nullable=True)
 
 class User(BaseUser, table = True):
