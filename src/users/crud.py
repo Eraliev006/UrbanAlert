@@ -50,3 +50,14 @@ async def get_user_by_id(db_session: AsyncSession, user_id: int) -> Optional[Use
 
 async def update_user_by_id(db_session: AsyncSession, user_id: int, new_user_data: UserUpdate) -> Optional[UserRead]:
     user: Optional[User] = await _get_user_by_id(db_session, user_id)
+
+    if not user:
+        raise UserWithIdNotFound(user_id)
+
+    for key, value in new_user_data.model_dump().items():
+        setattr(user, key, value)
+
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return UserRead(**user.model_dump())
