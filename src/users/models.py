@@ -11,6 +11,7 @@ class BaseUser(SQLModel):
 
 class User(BaseUser, table = True):
     id: Optional[int] = Field(primary_key=True, nullable=False, index=True)
+    email: EmailStr = Field(unique=True, index=True, nullable=False)
     password: str = Field(nullable=False)
     created_at: datetime.date
 
