@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlmodel.ext.asyncio.session import AsyncSession
 
