@@ -1,6 +1,7 @@
 import datetime
 from typing import Optional
 
+from pydantic import EmailStr
 from sqlmodel import SQLModel, Field
 
 
