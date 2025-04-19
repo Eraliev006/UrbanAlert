@@ -9,7 +9,7 @@ from src.users import UserCreate, User, UserRead
 from src.users import get_user_by_email, create_user
 
 
-async def register_user(db_session: AsyncSession, user:UserCreate):
+async def register_user(db_session: AsyncSession, user:UserCreate) -> UserRead:
     exists_user: Optional[User] = await get_user_by_email(db_session,str(user.email))
 
     if exists_user:
