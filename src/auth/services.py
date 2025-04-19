@@ -27,7 +27,7 @@ async def register_user(db_session: AsyncSession, user:UserCreate) -> UserRead:
     )
 
     # ------------------- SEND EMAIL VERIFY LINK  WITH OTP CODE --------------------
-    return created_user
+    return UserRead(**created_user.model_dump())
 
 
 async def login_user(db_session: AsyncSession,login_data: LoginUserRead) -> LoginUserOutput:
