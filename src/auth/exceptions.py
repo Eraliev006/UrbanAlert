@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from starlette.status import HTTP_401_UNAUTHORIZED
+from starlette import status
 
 
 class AuthException(HTTPException):
