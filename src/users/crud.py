@@ -1,8 +1,8 @@
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.common.exceptions import IntegrityErrorException
-from src.users import UserRead, UserCreate, User
+from src.common.exceptions import IntegrityErrorException, DatabaseError
+from src.users import UserRead, UserCreate, User, UserWithIdNotFound, UserUpdate
 
 
 async def create_user(db_session: AsyncSession, user: UserCreate) -> User:
