@@ -5,7 +5,7 @@ from starlette.status import HTTP_401_UNAUTHORIZED
 class AuthException(HTTPException):
     def __init__(self, detail: str):
         super().__init__(
-            status_code=HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail=detail
         )
 
