@@ -28,6 +28,13 @@ async def create_user(db_session: AsyncSession, user: UserCreate) -> User:
     except SQLAlchemyError:
         raise
 
+async def _get_user_by_id(db_session: AsyncSession, user_id: int) -> User:
+    try:
+        user: Optional[User] = await db_session.get(User, user_id)
+        return user
+    except SQLAlchemyError:
+        raise DatabaseError
+
 async def get_user_by_id(db_session: AsyncSession, user_id: int) -> Optional[UserRead]:
     """
     Async function to get user_by_id
