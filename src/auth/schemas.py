@@ -2,7 +2,7 @@ from sqlmodel import SQLModel
 
 
 class LoginUserRead(SQLModel):
-    phone_number: str
+    email: EmailStr
     password: str
 
 class LoginUserOutput(SQLModel):
