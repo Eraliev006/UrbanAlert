@@ -35,3 +35,10 @@ class UserWithEmailNotFound(HTTPException):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f'Email - {email} is not found'
         )
+
+class PasswordIsIncorrect(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f'Password is incorrect'
+        )
