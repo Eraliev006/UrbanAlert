@@ -40,5 +40,5 @@ class DatabaseHelper:
 
 
 database_helper = DatabaseHelper(
-    url = settings.db.get_url()
+    url = settings.database.get_url()
 )
