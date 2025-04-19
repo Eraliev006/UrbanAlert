@@ -18,6 +18,12 @@ class Database(BaseModel):
     db_host: str
     db_port: int
 
+    def get_url(self) -> str:
+            """
+                :return: Return the string representing url to connect to database
+            """
+            return f'postgresql+asyncpg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}'
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file= BASE_DIR / '.env',
