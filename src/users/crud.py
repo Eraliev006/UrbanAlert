@@ -88,3 +88,16 @@ async def delete_user_by_id(db_session: AsyncSession, user_id: int) -> None:
         await db_session.commit()
     except SQLAlchemyError:
         raise
+async def get_user_by_email(db_session: AsyncSession, email:str) -> Optional[UserRead]:
+    """
+    Async def to get user by email
+    :param db_session: take async session to make request to db
+    :param email: get email to get user by email
+    :return: User
+    """
+    try:
+        stmt = select(User).where(User.email == email)
+        user: Optional[User] = await db_session.scalar(stmt)
+        return user
+    except SQLAlchemyError:
+        raise DatabaseError
