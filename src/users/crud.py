@@ -42,10 +42,11 @@ async def get_user_by_id(db_session: AsyncSession, user_id: int) -> Optional[Use
     :param user_id: take user ids to get user by this id
     :return: UserRead class, return created user or exception
     """
+    user = await _get_user_by_id(db_session,user_id)
+    if not user:
+        raise UserWithIdNotFound(user_id)
+    return UserRead(**user.model_dump())
 
-    try:
-        user: Optional[User] = await db_session.get(User, user_id)
-        return UserRead(**user.model_dump())
-    except SQLAlchemyError:
-        raise DatabaseError
-    
+
+async def update_user_by_id(db_session: AsyncSession, user_id: int, new_user_data: UserUpdate) -> Optional[UserRead]:
+    user: Optional[User] = await _get_user_by_id(db_session, user_id)
