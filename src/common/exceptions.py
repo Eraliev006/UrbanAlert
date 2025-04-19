@@ -14,3 +14,5 @@ class IntegrityErrorException(DatabaseError):
             detail='Integrity error'
         )
 
+class ErrorResponse(BaseModel):
+    detail: str
