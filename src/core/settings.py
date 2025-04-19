@@ -11,12 +11,20 @@ class JWT(BaseModel):
     refresh_expires_in_minutes: int
     algorithm: str
 
+class Database(BaseModel):
+    db_user: str
+    db_name: str
+    db_password: str
+    db_host: str
+    db_port: int
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file= BASE_DIR / '.env',
         env_nested_delimiter='__'
     )
     jwt: JWT
+    database: Database
     server_host: str
     server_port: int
 
