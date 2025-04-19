@@ -21,3 +21,10 @@ class ExpiredTokenSignatureException(AuthException):
         super().__init__(
             detail='Token expired',
         )
+
+class EmailAlreadyExists(HTTPException):
+    def __init__(self, email: str):
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f'Email - {email} already exists'
+        )
