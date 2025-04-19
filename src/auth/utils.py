@@ -2,6 +2,7 @@ from typing import Any
 
 import jwt
 from jwt import InvalidSignatureError, ExpiredSignatureError
+from passlib.context import CryptContext
 
 from src.auth import TokenPairs
 from src.auth.exceptions import ExpiredTokenSignatureException, InvalidSignatureException
