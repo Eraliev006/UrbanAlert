@@ -28,3 +28,17 @@ async def create_user(db_session: AsyncSession, user: UserCreate) -> User:
     except SQLAlchemyError:
         raise
 
+async def get_user_by_id(db_session: AsyncSession, user_id: int) -> Optional[UserRead]:
+    """
+    Async function to get user_by_id
+    :param db_session: take async db_session to make request to db
+    :param user_id: take user ids to get user by this id
+    :return: UserRead class, return created user or exception
+    """
+
+    try:
+        user: Optional[User] = await db_session.get(User, user_id)
+        return UserRead(**user.model_dump())
+    except SQLAlchemyError:
+        raise DatabaseError
+    
