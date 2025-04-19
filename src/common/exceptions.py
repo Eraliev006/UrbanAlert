@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from pydantic import BaseModel
 from starlette import status
 
 class DatabaseError(HTTPException):
