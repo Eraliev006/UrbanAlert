@@ -1,3 +1,3 @@
 from .schemas import LoginUserOutput, LoginUserRead, TokenPairs
-from .exceptions import InvalidSignatureException, EmailAlreadyExists
+from .exceptions import InvalidSignatureException, EmailAlreadyExists, UserWithEmailNotFound
 from .utils import hash_password, verify_password
