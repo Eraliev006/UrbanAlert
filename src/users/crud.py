@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.common.exceptions import IntegrityErrorException, DatabaseError
+from src.common import IntegrityErrorException, DatabaseError
 from src.users import UserRead, UserCreate, User, UserWithIdNotFound, UserUpdate
 
 
@@ -87,4 +87,4 @@ async def delete_user_by_id(db_session: AsyncSession, user_id: int) -> None:
         await db_session.delete(user)
         await db_session.commit()
     except SQLAlchemyError:
-        raise 
+        raise
