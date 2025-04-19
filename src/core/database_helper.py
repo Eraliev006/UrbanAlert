@@ -31,8 +31,8 @@ class DatabaseHelper:
             expire_on_commit = False
         )
 
-     async def session_getter(self) -> AsyncGenerator[AsyncSession, None]:
-         async with self.session_factory() as session:
+    async def session_getter(self) -> AsyncGenerator[AsyncSession, None]:
+        async with self.session_factory() as session:
              yield session
 
     async def dispose(self):
