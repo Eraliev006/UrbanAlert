@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth import EmailAlreadyExists, hash_password, LoginUserRead, LoginUserOutput, UserWithEmailNotFound, \
     verify_password, PasswordIsIncorrect, TokenPairs, UserNotVerifyEmail
 from src.auth.utils import get_pairs_token
-from src.users import UserCreate, User
+from src.users import UserCreate, User, UserRead
 from src.users import get_user_by_email, create_user
 
 
