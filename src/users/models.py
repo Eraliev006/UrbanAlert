@@ -13,8 +13,8 @@ class BaseUser(SQLModel):
 
 class User(BaseUser, table = True):
     id: Optional[int] = Field(primary_key=True, nullable=False, index=True)
-    email: EmailStr = Field(unique=True, index=True, nullable=False)
     password: str = Field(nullable=False)
+    is_verified: bool = Field(default=False, nullable=False)
     created_at: datetime.date
 
 class UserCreate(BaseUser):
@@ -22,10 +22,11 @@ class UserCreate(BaseUser):
 
 class UserRead(BaseUser):
     id: int
+    is_verified: bool
     created_at: datetime.date
 
 class UserUpdate(BaseUser):
-    pass
+    is_verified: bool
 
 
 
