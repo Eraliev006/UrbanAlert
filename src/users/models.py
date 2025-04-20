@@ -15,7 +15,7 @@ class User(BaseUser, table = True):
     id: Optional[int] = Field(primary_key=True, nullable=False, index=True)
     password: str = Field(nullable=False)
     is_verified: bool = Field(default=False, nullable=False)
-    created_at: datetime.date = datetime.date.today()
+    created_at: datetime.date = Field(default=datetime.date.today())
 
 class UserCreate(BaseUser):
     password: str
