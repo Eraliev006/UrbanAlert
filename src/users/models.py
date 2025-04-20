@@ -29,7 +29,7 @@ class UserUpdate(SQLModel):
     first_name: Optional[str] = Field(max_length=100)
     last_name: Optional[str] = Field(max_length=100)
     email: Optional[EmailStr] = Field(unique=True, index=True)
-    avatar_url: Optional[Optional][str]
+    avatar_url: Optional[str]
     is_verified: Optional[bool] = False
 
 
