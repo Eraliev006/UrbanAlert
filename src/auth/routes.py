@@ -58,3 +58,11 @@ async def register_user_route(db_session: SESSION_DEP, user_data: UserCreate):
 )
 async def login_user_router(db_session: SESSION_DEP, login_data: LoginUserRead):
     return await login_user(db_session, login_data)
+
+@router.post('/verify-code')
+async def verify_code_route():
+    pass
+
+@router.post('/refresh')
+async def refresh_token():
+    pass
