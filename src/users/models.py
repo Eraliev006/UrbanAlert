@@ -25,8 +25,12 @@ class UserRead(BaseUser):
     is_verified: bool
     created_at: datetime.date
 
-class UserUpdate(BaseUser):
-    is_verified: bool
+class UserUpdate(SQLModel):
+    first_name: Optional[str] = Field(max_length=100)
+    last_name: Optional[str] = Field(max_length=100)
+    email: Optional[EmailStr] = Field(unique=True, index=True)
+    avatar_url: Optional[Optional][str]
+    is_verified: Optional[bool] = False
 
 
 
