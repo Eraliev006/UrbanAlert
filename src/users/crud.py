@@ -29,7 +29,7 @@ async def create_user(db_session: AsyncSession, user: UserCreate) -> User:
         raise IntegrityErrorException
 
     except SQLAlchemyError:
-        raise
+        raise DatabaseError('Error with DB while creating user')
 
 async def _get_user_by_id(db_session: AsyncSession, user_id: int) -> User:
     try:
