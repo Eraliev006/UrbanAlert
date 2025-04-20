@@ -28,7 +28,7 @@ async def session():
         yield session
         await session.rollback()
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def fake_user_create_data() -> UserCreate:
     return UserCreate(
         first_name = random_lower_string(),
