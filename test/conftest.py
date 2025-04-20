@@ -3,7 +3,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from src.core import settings
-from src.users import UserCreate
+from src.users import UserCreate, UserUpdate
 from test import random_lower_string, random_email
 
 
@@ -35,5 +35,14 @@ def fake_user_create_data() -> UserCreate:
         last_name = random_lower_string(),
         email = random_email(),
         password = random_lower_string(),
+        avatar_url = random_lower_string()
+    )
+
+@pytest.fixture(scope='function')
+def fake_user_update_data() -> UserUpdate:
+    return UserUpdate(
+        first_name = random_lower_string(),
+        last_name = random_lower_string(),
+        email = random_email(),
         avatar_url = random_lower_string()
     )
