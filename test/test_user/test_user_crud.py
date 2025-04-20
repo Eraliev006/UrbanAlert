@@ -4,8 +4,10 @@ from unittest.mock import MagicMock
 import pytest
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.auth import UserWithEmailNotFound
 from src.common import IntegrityErrorException, DatabaseError
-from src.users import create_user, UserCreate, User, get_user_by_id, UserWithIdNotFound, UserRead
+from src.users import create_user, UserCreate, User, get_user_by_id, UserWithIdNotFound, UserRead, update_user_by_id, \
+    UserUpdate, delete_user_by_id, get_user_by_email
 
 
 @pytest.mark.asyncio
@@ -55,5 +57,50 @@ async def test_get_user_by_id_not_found(session):
     with pytest.raises(UserWithIdNotFound):
         await get_user_by_id(session,invalid_id)
 
+@pytest.mark.asyncio
+async def test_user_update_success(session, fake_user_create_data, fake_user_update_data):
+    created_user = await create_user(session, fake_user_create_data)
 
+    updated = await update_user_by_id(session, created_user.id, fake_user_update_data)
+
+    assert isinstance(updated, UserRead)
+    assert updated.email != fake_user_create_data.email
+    assert updated.email == fake_user_update_data.email
+    assert updated.id == created_user.id
+
+@pytest.mark.asyncio
+async def test_user_update_not_found(session, fake_user_create_data, fake_user_update_data):
+    await create_user(session, fake_user_create_data)
+    incorrect_ids = 87677912
+
+    with pytest.raises(UserWithIdNotFound):
+        await get_user_by_id(session, incorrect_ids)
+
+@pytest.mark.asyncio
+async def test_user_delete_success(session, fake_user_create_data, fake_user_update_data):
+    created = await create_user(session, fake_user_create_data)
+
+    await delete_user_by_id(session, created.id)
+
+    with pytest.raises(UserWithIdNotFound):
+        await get_user_by_id(session, created.id)
+
+
+@pytest.mark.asyncio
+async def test_user_delete_not_found(session, fake_user_create_data):
+    await create_user(session, fake_user_create_data)
+    incorrect_ids = 87677912
+
+    with pytest.raises(UserWithIdNotFound):
+        await delete_user_by_id(session, incorrect_ids)
+
+@pytest.mark.asyncio
+async def test_get_user_by_email_success(session, fake_user_create_data):
+    created = await create_user(session, fake_user_create_data)
+
+    user = await get_user_by_email(session, str(created.email))
+
+    assert user
+    assert fake_user_create_data.email == user.email
+    assert isinstance(user, User)
 
