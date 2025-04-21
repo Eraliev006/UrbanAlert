@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth import EmailAlreadyExists, hash_password, LoginUserRead, LoginUserOutput, UserWithEmailNotFound, \
     verify_password, PasswordIsIncorrect, TokenPairs, UserNotVerifyEmail
 from src.auth.utils import get_pairs_token
+from src.notification import NotifierType
+from src.notification.notifier_factory import NotifierFactory
 from src.users import UserCreate, User, UserRead
 from src.users import get_user_by_email, create_user
 
@@ -26,7 +28,10 @@ async def register_user(db_session: AsyncSession, user:UserCreate) -> UserRead:
         user
     )
 
-    # ------------------- SEND EMAIL VERIFY LINK  WITH OTP CODE --------------------
+    # Add notify to celery tasks
+    notifier = NotifierFactory.get_notifier(NotifierType.EMAIL)
+    notifier.notify()
+
     return UserRead(**created_user.model_dump())
 
 
