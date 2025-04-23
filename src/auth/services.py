@@ -12,6 +12,12 @@ from src.users import get_user_by_email, create_user
 
 
 async def register_user(db_session: AsyncSession, user:UserCreate) -> UserRead:
+    """
+    Function is register user in app.
+    Return EmailAlreadyExists exception if email already exists. Also return UserRead
+    :param user: getting the UserCreate instance to insert to db
+    :param db_session: takes session to make transaction with database
+    """
     exists_user: Optional[User] = await get_user_by_email(db_session,str(user.email))
 
     if exists_user:
@@ -40,6 +46,15 @@ async def register_user(db_session: AsyncSession, user:UserCreate) -> UserRead:
 
 
 async def login_user(db_session: AsyncSession,login_data: LoginUserRead) -> LoginUserOutput:
+    """
+    Function is login user in app.
+    Return UserWithEmailNotFound exception if email not exists.
+    Return UserNotVerifyEmail if current user is not verify email
+    Return PasswordIsIncorrect if password is incorrect
+    Return LoginUserOutput if password and email is correct
+    :param login_data: getting the LoginUserRead instance to check is user registered and check password and email
+    :param db_session: takes session to make transaction with database
+    """
     exists_user: Optional[User] = await get_user_by_email(db_session, str(login_data.email))
 
     if not exists_user:
