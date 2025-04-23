@@ -6,7 +6,7 @@ from src.notification import Notifier
 
 class EmailNotifier(Notifier):
 
-    def notify(self, to_user: str, otp_code: str):
+    async def notify(self, to_user: str, otp_code: str):
         message = EmailMessage()
         message['From'] = settings.smtp.user_email
         message['To'] = to_user
