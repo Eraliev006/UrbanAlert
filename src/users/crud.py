@@ -8,6 +8,21 @@ from src.common import IntegrityErrorException, DatabaseError
 from src.users import UserRead, UserCreate, User, UserWithIdNotFound, UserUpdate
 
 
+async def get_all_users(db_session: AsyncSession) -> Optional[list[UserRead]]:
+    """
+    Method to get all user.
+    Return list[UserRead] | None
+    :param db_session: takes session to make transaction with database
+    """
+    try:
+        stmt = select(User)
+        users = await db_session.scalars(stmt)
+        return [UserRead(**user.model_dump()) for user in users]
+
+    except SQLAlchemyError:
+        raise DatabaseError('Error with db while getting all users')
+
+
 async def create_user(db_session: AsyncSession, user: UserCreate) -> User:
     """
     Method to create user in database
