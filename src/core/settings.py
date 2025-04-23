@@ -13,6 +13,9 @@ class JWT(BaseModel):
 
 class SMTPSettings(BaseModel):
     user_email: EmailStr
+    password: str
+    hostname: str
+    port: int
 
 class Database(BaseModel):
     db_user: str
