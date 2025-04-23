@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import EmailAlreadyExists, hash_password, LoginUserRead, LoginUserOutput, UserWithEmailNotFound, \
     verify_password, PasswordIsIncorrect, TokenPairs, UserNotVerifyEmail
-from src.auth.utils import get_pairs_token
+from src.auth.utils import get_pairs_token, generate_otp_code
 from src.notification import NotifierType
 from src.notification.notifier_factory import NotifierFactory
 from src.users import UserCreate, User, UserRead
@@ -29,8 +29,12 @@ async def register_user(db_session: AsyncSession, user:UserCreate) -> UserRead:
     )
 
     # Add notify to celery tasks
+    otp_code = generate_otp_code()
     notifier = NotifierFactory.get_notifier(NotifierType.EMAIL)
-    notifier.notify()
+    await notifier.notify(
+        to_user=str(created_user.email),
+        otp_code=otp_code
+    )
 
     return UserRead(**created_user.model_dump())
 
