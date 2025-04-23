@@ -12,10 +12,13 @@ class BaseUser(SQLModel):
     avatar_url: Optional[str] = Field(nullable=True)
 
 class User(BaseUser, table = True):
+    __tablename__ = "user"
+    __table_args__ = {"extend_existing": True}
+
     id: Optional[int] = Field(primary_key=True, nullable=False, index=True)
     password: str = Field(nullable=False)
     is_verified: bool = Field(default=False, nullable=False)
-    created_at: datetime.date = Field(default=datetime.date.today())
+    created_at: datetime.date = Field(default_factory=datetime.date.today)
 
 class UserCreate(BaseUser):
     password: str
