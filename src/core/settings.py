@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -10,6 +10,9 @@ class JWT(BaseModel):
     access_expires_in_minutes: int
     refresh_expires_in_minutes: int
     algorithm: str
+
+class SMTPSettings(BaseModel):
+    user_email: EmailStr
 
 class Database(BaseModel):
     db_user: str
@@ -31,6 +34,7 @@ class Settings(BaseSettings):
     )
     jwt: JWT
     database: Database
+    smtp: SMTPSettings
     server_host: str
     server_port: int
 
