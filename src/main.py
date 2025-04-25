@@ -6,7 +6,7 @@ from auth.routes import router as auth_router
 from users.routes import router as user_router
 
 
-
+@asynccontextmanager
 async def lifespan(app: FastAPI):
     await redis_client.connect()
 
