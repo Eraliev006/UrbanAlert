@@ -30,6 +30,10 @@ class Database(BaseModel):
             """
             return f'postgresql+asyncpg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}'
 
+class RedisSettings(BaseModel):
+    port: int
+    host: str
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file= BASE_DIR / '.env',
@@ -38,6 +42,7 @@ class Settings(BaseSettings):
     jwt: JWT
     database: Database
     smtp: SMTPSettings
+    redis: RedisSettings
     server_host: str
     server_port: int
 
