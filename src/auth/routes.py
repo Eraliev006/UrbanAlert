@@ -6,7 +6,7 @@ from starlette import status
 
 from src.auth import register_user, LoginUserRead, login_user, LoginUserOutput, verify_user_by_otp_code, VerifyEmailSchema
 from src.common import ErrorResponse
-from src.core import database_helper
+from src.core import database_helper, get_current_user
 from src.users import UserCreate, UserRead
 
 router = APIRouter(
@@ -17,8 +17,10 @@ router = APIRouter(
 SESSION_DEP = Annotated[AsyncSession, Depends(database_helper.session_getter)]
 
 @router.get('/me')
-async def get_current_user():
-    pass
+async def get_current_user_route(
+        current_user: Annotated[UserRead, Depends(get_current_user)]
+):
+    return current_user
 
 @router.post('/register-user',
              response_model=UserRead,
