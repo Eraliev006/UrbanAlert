@@ -4,7 +4,8 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import EmailAlreadyExists, hash_password, LoginUserRead, LoginUserOutput, UserWithEmailNotFound, \
-    verify_password, PasswordIsIncorrect, TokenPairs, UserNotVerifyEmail, VerifyEmailSchema
+    verify_password, PasswordIsIncorrect, TokenPairs, UserNotVerifyEmail, VerifyEmailSchema, OTPCodeNotFound, \
+    OTPCodeIsWrong, UserAlreadyVerifiedEmail
 from src.auth.utils import get_pairs_token, generate_otp_code
 from src.core import redis_client
 from src.notification import NotifierType
@@ -93,19 +94,22 @@ async def login_user(db_session: AsyncSession,login_data: LoginUserRead) -> Logi
 
 async def verify_user_by_otp_code(db_session: AsyncSession, verify_data: VerifyEmailSchema):
     user = await get_user_by_email(db_session, str(verify_data.email_user))
+
     if not user:
         raise UserWithEmailNotFound(str(verify_data.email_user))
 
+    if user.is_verified:
+        raise UserAlreadyVerifiedEmail(str(user.email))
+
     saved_otp_code = await redis_client.get(f'otp:{verify_data.email_user}')
     if saved_otp_code is None:
-        # replace by custom exception
-        raise ValueError
+        raise OTPCodeNotFoundOrExpired(str(user.email))
 
-    print(f"{saved_otp_code=}, {verify_data.otp_code=}")
-    if saved_otp_code == verify_data.otp_code:
-        await change_user_is_verify_status(db_session, user)
-        return {"message": "User verification successful"}
+    if saved_otp_code != verify_data.otp_code:
+        raise OTPCodeIsWrong
 
+    await change_user_is_verify_status(db_session, user)
+    return {"message": "User verification successful"}
 
     return None
 

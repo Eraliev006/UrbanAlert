@@ -50,11 +50,11 @@ class UserNotVerifyEmail(HTTPException):
             detail=f'User is not verify email'
         )
 
-class OTPCodeNotFound(HTTPException):
+class OTPCodeNotFoundOrExpired(HTTPException):
     def __init__(self, email: str):
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f'OTP code is not found for email - {email}'
+            detail=f'OTP code is not found or expired for email - {email}'
         )
 
 class OTPCodeIsWrong(HTTPException):
