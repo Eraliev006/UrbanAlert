@@ -1,10 +1,11 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette import status
 
-from src.auth import register_user, LoginUserRead, login_user, LoginUserOutput, verify_user_by_otp_code, VerifyEmailSchema
+from src.auth import register_user, login_user, LoginUserOutput, verify_user_by_otp_code, VerifyEmailSchema
 from src.common import ErrorResponse
 from src.core import database_helper
 from src.users import UserCreate, UserRead
@@ -52,8 +53,8 @@ async def register_user_route(db_session: SESSION_DEP, user_data: UserCreate):
         },
     }
 )
-async def login_user_router(db_session: SESSION_DEP, login_data: LoginUserRead):
-    return await login_user(db_session, login_data)
+async def login_user_router(db_session: SESSION_DEP, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    return await login_user(db_session, form_data)
 
 @router.post(
     '/verify-code',
