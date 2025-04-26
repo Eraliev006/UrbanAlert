@@ -63,3 +63,10 @@ class OTPCodeIsWrong(HTTPException):
             status_code=status.HTTP_404_NOT_FOUND,
             detail='OTP code is wrong'
         )
+
+class UserAlreadyVerifiedEmail(HTTPException):
+    def __init__(self, email: str):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f'User with email - {email} already verify'
+        )
