@@ -14,3 +14,7 @@ class LoginUserOutput(SQLModel):
 class TokenPairs(SQLModel):
     access_token: str
     refresh_token: str
+
+class VerifyEmailSchema(SQLModel):
+    email_user: EmailStr
+    otp_code: str
