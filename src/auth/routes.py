@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette import status
 
-from src.auth import register_user, LoginUserRead, login_user, LoginUserOutput
+from src.auth import register_user, LoginUserRead, login_user, LoginUserOutput, verify_user_by_otp_code, VerifyEmailSchema
 from src.common import ErrorResponse
 from src.core import database_helper
 from src.users import UserCreate, UserRead
@@ -59,9 +59,16 @@ async def register_user_route(db_session: SESSION_DEP, user_data: UserCreate):
 async def login_user_router(db_session: SESSION_DEP, login_data: LoginUserRead):
     return await login_user(db_session, login_data)
 
-@router.post('/verify-code')
-async def verify_code_route():
-    pass
+@router.post(
+    '/verify-code',
+    status_code=status.HTTP_200_OK,
+    response_model=dict[str, str]
+)
+async def verify_code_route(
+        verify_data: VerifyEmailSchema,
+        session: SESSION_DEP,
+):
+    return await verify_user_by_otp_code(session, verify_data)
 
 @router.post('/refresh')
 async def refresh_token():
