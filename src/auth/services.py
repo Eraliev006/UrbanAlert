@@ -1,13 +1,15 @@
+from datetime import timedelta
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import EmailAlreadyExists, hash_password, LoginUserRead, LoginUserOutput, UserWithEmailNotFound, \
-    verify_password, PasswordIsIncorrect, TokenPairs, UserNotVerifyEmail
+    verify_password, PasswordIsIncorrect, TokenPairs, UserNotVerifyEmail, VerifyEmailSchema
 from src.auth.utils import get_pairs_token, generate_otp_code
+from src.core import redis_client
 from src.notification import NotifierType
 from src.notification.notifier_factory import NotifierFactory
-from src.users import UserCreate, User, UserRead
+from src.users import UserCreate, User, UserRead, change_user_is_verify_status
 from src.users import get_user_by_email, create_user
 
 
@@ -37,9 +39,16 @@ async def register_user(db_session: AsyncSession, user:UserCreate) -> UserRead:
     # Add notify to celery tasks
     otp_code = generate_otp_code()
     notifier = NotifierFactory.get_notifier(NotifierType.EMAIL)
+
     await notifier.notify(
         to_user=str(created_user.email),
         otp_code=otp_code
+    )
+
+    await redis_client.set(
+        key = f'otp:{created_user.email}',
+        value = otp_code,
+        ex = timedelta(minutes=5)
     )
 
     return UserRead(**created_user.model_dump())
@@ -81,6 +90,25 @@ async def login_user(db_session: AsyncSession,login_data: LoginUserRead) -> Logi
         refresh_token = tokens.refresh_token,
         token_type = 'bearer'
     )
+
+async def verify_user_by_otp_code(db_session: AsyncSession, verify_data: VerifyEmailSchema):
+    user = await get_user_by_email(db_session, str(verify_data.email_user))
+    if not user:
+        raise UserWithEmailNotFound(str(verify_data.email_user))
+
+    saved_otp_code = await redis_client.get(f'otp:{verify_data.email_user}')
+    if saved_otp_code is None:
+        # replace by custom exception
+        raise ValueError
+
+    print(f"{saved_otp_code=}, {verify_data.otp_code=}")
+    if saved_otp_code == verify_data.otp_code:
+        await change_user_is_verify_status(db_session, user)
+        return {"message": "User verification successful"}
+
+
+    return None
+
 
 
 
