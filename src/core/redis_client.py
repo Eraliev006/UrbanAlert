@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import redis.asyncio as redis
 
 from src.core import settings
@@ -23,19 +25,24 @@ class RedisClient:
     async def close(self):
         await self._client.close()
 
-    def get_client(self) -> redis.Redis:
+    def _get_client(self) -> redis.Redis:
         if not self._client:
             raise RuntimeError('Redis is not connected')
         return self._client
 
-    async def set(self, key: str, value: str | int | dict | list | set, ex: int = None):
-        await self.get_client().set(name=key, value=value, ex=ex)
+    async def set(self, key: str, value: str | int | dict | list | set, ex: int | timedelta = None):
+        """
+        :param: key: take a str and help to get data from redis by this key
+        :param: value: a data
+        :param: ex: take a life seconds
+        """
+        await self._get_client().set(name=key, value=value, ex=ex)
 
     async def get(self, key: str):
-        return self.get_client().get(name=key)
+        return self._get_client().get(name=key)
 
     async def delete(self, key: str):
-        await self.get_client().delete(key)
+        await self._get_client().delete(key)
 
 redis_client = RedisClient(
     port = settings.redis.port,
