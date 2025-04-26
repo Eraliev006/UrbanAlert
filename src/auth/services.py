@@ -92,7 +92,7 @@ async def login_user(db_session: AsyncSession,login_data: LoginUserRead) -> Logi
         token_type = 'bearer'
     )
 
-async def verify_user_by_otp_code(db_session: AsyncSession, verify_data: VerifyEmailSchema):
+async def verify_user_by_otp_code(db_session: AsyncSession, verify_data: VerifyEmailSchema) -> dict[str, str]:
     user = await get_user_by_email(db_session, str(verify_data.email_user))
 
     if not user:
@@ -110,9 +110,6 @@ async def verify_user_by_otp_code(db_session: AsyncSession, verify_data: VerifyE
 
     await change_user_is_verify_status(db_session, user)
     return {"message": "User verification successful"}
-
-    return None
-
 
 
 
