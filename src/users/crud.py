@@ -117,3 +117,21 @@ async def get_user_by_email(db_session: AsyncSession, email:str) -> Optional[Use
         return user
     except SQLAlchemyError:
         raise DatabaseError
+
+async def change_user_is_verify_status(
+        db_session: AsyncSession,
+        user: User
+):
+    """
+    Async def to get change user status
+    :param db_session: take async session to make request to db
+    :param user: instance of user to change his status
+    """
+    user.is_verified = True
+    try:
+        await db_session.commit()
+        await db_session.refresh(user)
+        return user
+    except SQLAlchemyError:
+        await db_session.rollback()
+        raise DatabaseError
