@@ -4,7 +4,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import EmailAlreadyExists, hash_password, LoginUserRead, LoginUserOutput, UserWithEmailNotFound, \
-    verify_password, PasswordIsIncorrect, TokenPairs, UserNotVerifyEmail, VerifyEmailSchema, OTPCodeNotFound, \
+    verify_password, PasswordIsIncorrect, TokenPairs, UserNotVerifyEmail, VerifyEmailSchema, OTPCodeNotFoundOrExpired, \
     OTPCodeIsWrong, UserAlreadyVerifiedEmail
 from src.auth.utils import get_pairs_token, generate_otp_code
 from src.core import redis_client
