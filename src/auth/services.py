@@ -6,8 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import EmailAlreadyExists, hash_password, LoginUserOutput, \
     verify_password, PasswordIsIncorrect, TokenPairs, UserNotVerifyEmail, VerifyEmailSchema, OTPCodeNotFoundOrExpired, \
-    OTPCodeIsWrong, UserAlreadyVerifiedEmail, UserWithUsernameNotFound, UserWithEmailNotFound
-from src.auth.utils import get_pairs_token, generate_otp_code
+    OTPCodeIsWrong, UserAlreadyVerifiedEmail, UserWithUsernameNotFound, UserWithEmailNotFound, InvalidTokenType
+from src.auth.utils import get_pairs_token, generate_otp_code, decode_token
 from src.core import redis_client
 from src.notification import NotifierType
 from src.notification.notifier_factory import NotifierFactory
@@ -112,5 +112,16 @@ async def verify_user_by_otp_code(db_session: AsyncSession, verify_data: VerifyE
     await change_user_is_verify_status(db_session, user)
     return {"message": "User verification successful"}
 
+async def refresh_token(refresh_token: str) -> LoginUserOutput:
+    payload = decode_token(refresh_token)
 
+    if payload['type'] != 'refresh':
+        raise InvalidTokenType
+    tokens: TokenPairs = get_pairs_token(payload)
+
+    return LoginUserOutput(
+        access_token=tokens.access_token,
+        refresh_token=tokens.refresh_token,
+        token_type='bearer'
+    )
 

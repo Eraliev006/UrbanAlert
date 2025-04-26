@@ -5,7 +5,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette import status
 
-from src.auth import register_user, login_user, LoginUserOutput, verify_user_by_otp_code, VerifyEmailSchema
+from src.auth import register_user, login_user, LoginUserOutput, verify_user_by_otp_code, VerifyEmailSchema, \
+    refresh_token, RefreshTokenRequest
 from src.common import ErrorResponse
 from src.core import database_helper
 from src.users import UserCreate, UserRead
@@ -68,5 +69,7 @@ async def verify_code_route(
     return await verify_user_by_otp_code(session, verify_data)
 
 @router.post('/refresh')
-async def refresh_token():
-    pass
+async def refresh_token_route(
+        refresh_token_request: RefreshTokenRequest
+):
+    return await refresh_token(refresh_token_request.refresh_token)
