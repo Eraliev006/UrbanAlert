@@ -116,7 +116,22 @@ async def get_user_by_email(db_session: AsyncSession, email:str) -> Optional[Use
         user: Optional[User] = await db_session.scalar(stmt)
         return user
     except SQLAlchemyError:
-        raise DatabaseError
+        raise DatabaseError('')
+
+
+async def get_user_by_username(db_session: AsyncSession, username:str) -> Optional[User]:
+    """
+    Async def to get user by email
+    :param db_session: take async session to make request to db
+    :param username: get username to get user by email
+    :return: User
+    """
+    try:
+        stmt = select(User).where(User.username == username)
+        user: Optional[User] = await db_session.scalar(stmt)
+        return user
+    except SQLAlchemyError:
+        raise DatabaseError('')
 
 async def change_user_is_verify_status(
         db_session: AsyncSession,
