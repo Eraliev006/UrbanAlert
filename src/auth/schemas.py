@@ -13,3 +13,6 @@ class TokenPairs(SQLModel):
 class VerifyEmailSchema(SQLModel):
     email_user: EmailStr
     otp_code: str
+
+class RefreshTokenRequest(SQLModel):
+    refresh_token: str
