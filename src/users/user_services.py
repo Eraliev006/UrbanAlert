@@ -87,10 +87,9 @@ class UserService:
         await self.db.refresh(user)
         return UserRead(**user.model_dump())
 
-    async def delete_user_by_id(self, db_session: AsyncSession, user_id: int) -> None:
+    async def delete_user_by_id(self, user_id: int) -> None:
         """
         Async def to delete user by id
-        :param db_session: take async session to make request to db
         :param user_id: get id to get user by id and delete
         :return: None
         """
@@ -100,8 +99,8 @@ class UserService:
             raise UserWithIdNotFound(user_id)
 
         try:
-            await db_session.delete(user)
-            await db_session.commit()
+            await self.db.delete(user)
+            await self.db.commit()
         except SQLAlchemyError:
             raise
 
