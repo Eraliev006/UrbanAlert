@@ -1,12 +1,11 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette import status
 
 from src.common import ErrorResponse
-from src.core import database_helper, get_current_user
-from src.users import get_user_by_id, update_user_by_id, UserUpdate, delete_user_by_id, get_all_users, UserRead
+from src.core import get_current_user, get_user_service
+from src.users import UserRead, UserUpdate, UserService
 
 router = APIRouter(
     tags=['Users'],
@@ -20,23 +19,18 @@ common_responses = {
     }
 }
 
-SESSION_DEP = Annotated[AsyncSession, Depends(database_helper.session_getter)]
 CURRENT_USER_DEP = Annotated[UserRead, Depends(get_current_user)]
+USER_SERVICE_DEP = Annotated[UserService, Depends(get_user_service)]
+
 
 @router.get(
     '/',
     response_model=list[UserRead],
     status_code=status.HTTP_200_OK,
-    responses={},
 )
-async def get_all_users_route(session: SESSION_DEP):
-    return await get_all_users(session)
+async def get_all_users_route(service: USER_SERVICE_DEP) -> list[UserRead]:
+    return await service.get_all_users()
 
-@router.get('/me')
-async def get_current_user_route(
-        current_user: CURRENT_USER_DEP
-):
-    return current_user
 
 @router.get(
     '/{user_id}',
@@ -46,8 +40,17 @@ async def get_current_user_route(
         **common_responses,
     }
 )
-async def get_user_by_id_route(user_id: int, session: SESSION_DEP):
-    return await get_user_by_id(session, user_id)
+async def get_user_by_id_route(
+    user_id: int,
+    service: USER_SERVICE_DEP,
+) -> UserRead:
+    return await service.get_user_by_id(user_id)
+
+
+@router.get('/me')
+async def get_current_user_route(current_user: CURRENT_USER_DEP) -> UserRead:
+    return current_user
+
 
 @router.patch(
     '/me',
@@ -58,22 +61,23 @@ async def get_user_by_id_route(user_id: int, session: SESSION_DEP):
     }
 )
 async def update_user_by_id_route(
-        new_user_data: UserUpdate,
-        session: SESSION_DEP,
-        current_user: CURRENT_USER_DEP
-):
-    return await update_user_by_id(session, current_user.id, new_user_data)
+    new_user_data: UserUpdate,
+    service: USER_SERVICE_DEP,
+    current_user: CURRENT_USER_DEP,
+) -> UserRead:
+    return await service.update_user_by_id(current_user.id, new_user_data)
+
 
 @router.delete(
     '/me',
     status_code=status.HTTP_204_NO_CONTENT,
     response_model=None,
     responses={
-        **common_responses
+        **common_responses,
     }
 )
 async def delete_user_by_id_route(
-        session: SESSION_DEP,
-        current_user: CURRENT_USER_DEP,
-):
-    return await delete_user_by_id(session, current_user.id)
+    service: USER_SERVICE_DEP,
+    current_user: CURRENT_USER_DEP,
+) -> None:
+    await service.delete_user_by_id(current_user.id)
