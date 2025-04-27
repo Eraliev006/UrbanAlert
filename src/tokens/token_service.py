@@ -1,5 +1,5 @@
 import datetime
-from datetime import timedelta, timezone, datetime
+from datetime import timedelta, timezone
 from typing import Optional, Any
 
 import jwt
@@ -9,7 +9,7 @@ from src.auth import InvalidSignatureException
 from src.auth.exceptions import ExpiredTokenSignatureException
 from src.core import settings
 from src.core.redis_client import RedisClient
-from src.tokens import TokenType
+from src.tokens.token_type import TokenType
 
 
 class TokenService:
