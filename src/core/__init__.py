@@ -3,4 +3,4 @@ from .database_helper import database_helper
 from .redis_client import redis_client
 from .security import get_current_user, oauth2_scheme
 from .dependencies import get_user_service, get_service, get_auth_service
-from .database import Services
+from .base_services import Services

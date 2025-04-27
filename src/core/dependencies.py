@@ -2,7 +2,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .database_helper import database_helper
-from .database import Services
+from .base_services import Services
 
 from src.users import UserService
 from ..auth import AuthService
