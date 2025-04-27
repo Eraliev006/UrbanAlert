@@ -1,6 +1,7 @@
 
 from typing import Optional
 
+from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
@@ -119,8 +120,8 @@ class UserService:
 
     async def get_user_by_username(self, username: str) -> Optional[User]:
         """
-        Async def to get user by email
-        :param username: get username to get user by email
+        Async def to get user by username
+        :param username: get username to get user by username
         :return: User
         """
         try:
@@ -146,3 +147,17 @@ class UserService:
         except SQLAlchemyError:
             await self.db.rollback()
             raise DatabaseError
+
+    async def get_user_by_email_or_username(self, email: Optional[str],username: Optional[str]) -> Optional[User]:
+        """
+        Async def to get user by email or username
+        :param username: get username to get user by username
+        :param email: get email to get user by email
+        :return: User
+        """
+        try:
+            stmt = select(User).where(or_(User.username == username, User.email == email))
+            user: Optional[User] = await self.db.scalar(stmt)
+            return user
+        except SQLAlchemyError:
+            raise DatabaseError('')
