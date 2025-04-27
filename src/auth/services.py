@@ -6,19 +6,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import User
 from src.auth import hash_password, LoginUserOutput, \
-    verify_password, PasswordIsIncorrect, TokenPairs, UserNotVerifyEmail, VerifyEmailSchema, OTPCodeNotFoundOrExpired, \
+    verify_password, PasswordIsIncorrect, UserNotVerifyEmail, VerifyEmailSchema, OTPCodeNotFoundOrExpired, \
     OTPCodeIsWrong, UserAlreadyVerifiedEmail, UserWithUsernameNotFound, UserWithEmailNotFound, InvalidTokenType, EmailOrUsernameAlreadyExists, \
-    NewAccessToken, get_pairs_token, generate_otp_code, decode_token, RefreshTokenNotFound
-from src.auth.tokens.access import AccessTokenCreator
-from src.auth.tokens.token_repository import TokenRepository
+    generate_otp_code, RefreshTokenNotFound
+from src.tokens import TokenService
 from src.core import redis_client
 from src.notification import NotifierType, NotifierFactory
 from src.users import UserCreate, UserRead, UserService
 
 
 class AuthService:
-    def __init__(self,db: AsyncSession, user_service: UserService, token_repo: TokenRepository):
-        self.token_repo = token_repo
+    def __init__(self,db: AsyncSession, user_service: UserService, token_service: TokenService):
+        self.token_service = token_service
         self.user_service = user_service
         self.db = db
 
@@ -60,6 +59,19 @@ class AuthService:
 
         return UserRead(**created_user.model_dump())
 
+    def _get_access_and_refresh_tokens(self, user: User | UserRead):
+        access_token = self.token_service.create_access_token(
+            user_id=user.id,
+            username=user.username,
+            email=str(user.email),
+            avatar_url=user.avatar_url,
+            is_verified=user.is_verified
+        )
+        refresh_token = self.token_service.create_refresh_token(
+            user_id=user.id,
+            username=user.username,
+        )
+        return access_token, refresh_token
 
     async def login_user(self, form_data: OAuth2PasswordRequestForm) -> LoginUserOutput:
         """
@@ -82,18 +94,13 @@ class AuthService:
         ):
             raise PasswordIsIncorrect
 
-        payload = {
-            'sub': 'user',
-            'user_id': exists_user.id,
-            'is_verified': exists_user.is_verified
-        }
-        token_pairs: TokenPairs = get_pairs_token(payload)
+        access_token, refresh_token = self._get_access_and_refresh_tokens(exists_user)
 
-        await self.token_repo.save_refresh_token(exists_user.id, token_pairs.refresh_token)
+        await self.token_service.save_refresh_token(exists_user.id, refresh_token)
 
         return LoginUserOutput(
-            access_token=token_pairs.access_token,
-            refresh_token=token_pairs.refresh_token,
+            access_token=access_token,
+            refresh_token=refresh_token,
             token_type='bearer'
         )
 
@@ -117,19 +124,24 @@ class AuthService:
         await self.user_service.change_user_is_verify_status(user)
         return {"message": "User verification successful"}
 
-    async def refresh_token(self, refresh_token: str) -> NewAccessToken:
-        payload = decode_token(refresh_token)
-        user_id = payload['user_id']
+    async def refresh_token(self, refresh_token: str) -> LoginUserOutput:
+        payload = self.token_service.decode_token(refresh_token)
+        user_id = int(payload['sub'])
 
         if payload['type'] != 'refresh':
             raise InvalidTokenType
 
-        exists_refresh_token = await self.token_repo.get_refresh_token(user_id)
+        exists_refresh_token = await self.token_service.get_refresh_token(user_id)
 
         if not exists_refresh_token:
             raise RefreshTokenNotFound
 
-        new_access_token: str = AccessTokenCreator().generate(payload)
+        user: UserRead = await self.user_service.get_user_by_id(int(payload['sub']))
 
-        return NewAccessToken(new_access_token = new_access_token)
+        new_access_token, new_refresh_token = self._get_access_and_refresh_tokens(user)
 
+        return LoginUserOutput(
+            access_token = new_access_token,
+            refresh_token = new_refresh_token,
+            token_type = 'bearer'
+        )
