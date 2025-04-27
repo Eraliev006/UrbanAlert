@@ -54,7 +54,7 @@ class UserService:
             user: Optional[User] = await self.db.get(User, user_id)
             return user
         except SQLAlchemyError:
-            raise DatabaseError
+            raise DatabaseError('Error with db while getting user by id')
 
     async def get_user_by_id(self, user_id: int) -> Optional[UserRead]:
         """
@@ -103,7 +103,7 @@ class UserService:
             await self.db.delete(user)
             await self.db.commit()
         except SQLAlchemyError:
-            raise
+            raise DatabaseError('Error with db while deleting user by id')
 
     async def get_user_by_email(self, email: str) -> Optional[User]:
         """
@@ -116,7 +116,7 @@ class UserService:
             user: Optional[User] = await self.db.scalar(stmt)
             return user
         except SQLAlchemyError:
-            raise DatabaseError('')
+            raise DatabaseError('Error with db while getting user by email')
 
     async def get_user_by_username(self, username: str) -> Optional[User]:
         """
@@ -129,7 +129,7 @@ class UserService:
             user: Optional[User] = await self.db.scalar(stmt)
             return user
         except SQLAlchemyError:
-            raise DatabaseError('')
+            raise DatabaseError('Error with db while getting user by username')
 
     async def change_user_is_verify_status(
             self,
@@ -146,7 +146,7 @@ class UserService:
             return user
         except SQLAlchemyError:
             await self.db.rollback()
-            raise DatabaseError
+            raise DatabaseError('Error with db while change user status')
 
     async def get_user_by_email_or_username(self, email: Optional[str],username: Optional[str]) -> Optional[User]:
         """
@@ -160,4 +160,4 @@ class UserService:
             user: Optional[User] = await self.db.scalar(stmt)
             return user
         except SQLAlchemyError:
-            raise DatabaseError('')
+            raise DatabaseError('Error with db while getting user by username or email')
