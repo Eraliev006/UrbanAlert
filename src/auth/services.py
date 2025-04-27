@@ -8,15 +8,17 @@ from src import User
 from src.auth import EmailAlreadyExists, hash_password, LoginUserOutput, \
     verify_password, PasswordIsIncorrect, TokenPairs, UserNotVerifyEmail, VerifyEmailSchema, OTPCodeNotFoundOrExpired, \
     OTPCodeIsWrong, UserAlreadyVerifiedEmail, UserWithUsernameNotFound, UserWithEmailNotFound, InvalidTokenType, \
-    NewAccessToken, get_pairs_token, generate_otp_code, decode_token, InvalidToken
+    NewAccessToken, get_pairs_token, generate_otp_code, decode_token, RefreshTokenNotFound
 from src.auth.tokens.access import AccessTokenCreator
+from src.auth.tokens.token_repository import TokenRepository
 from src.core import redis_client
 from src.notification import NotifierType, NotifierFactory
 from src.users import UserCreate, UserRead, UserService
 
 
 class AuthService:
-    def __init__(self,db: AsyncSession, user_service: UserService):
+    def __init__(self,db: AsyncSession, user_service: UserService, token_repo: TokenRepository):
+        self.token_repo = token_repo
         self.user_service = user_service
         self.db = db
 
@@ -26,7 +28,7 @@ class AuthService:
         Return EmailAlreadyExists exception if email already exists. Also return UserRead
         :param user: getting the UserCreate instance to insert to db
         """
-        exists_user: Optional[User] = await self.user_service.get_user_by_email(str(user.email))
+        exists_user: Optional[User] = await self.user_service.get_user_by_email_or_username(str(user.email), user.username)
 
         if exists_user:
             raise EmailAlreadyExists(str(user.email))
@@ -87,7 +89,7 @@ class AuthService:
         }
         token_pairs: TokenPairs = get_pairs_token(payload)
 
-        await redis_client.set(f'refresh_token:{exists_user.id}', token_pairs.refresh_token, ex=timedelta(days=30))
+        await self.token_repo.save_refresh_token(exists_user.id, token_pairs.refresh_token)
 
         return LoginUserOutput(
             access_token=token_pairs.access_token,
@@ -115,18 +117,17 @@ class AuthService:
         await self.user_service.change_user_is_verify_status(user)
         return {"message": "User verification successful"}
 
-    @staticmethod
-    async def refresh_token(refresh_token: str) -> NewAccessToken:
+    async def refresh_token(self, refresh_token: str) -> NewAccessToken:
         payload = decode_token(refresh_token)
         user_id = payload['user_id']
 
         if payload['type'] != 'refresh':
             raise InvalidTokenType
 
-        exists_refresh_token = await redis_client.get(f'refresh_token:{user_id}')
+        exists_refresh_token = await self.token_repo.get_refresh_token(user_id)
 
         if not exists_refresh_token:
-            raise InvalidToken
+            raise RefreshTokenNotFound
 
         new_access_token: str = AccessTokenCreator().generate(payload)
 
