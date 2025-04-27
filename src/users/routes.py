@@ -31,22 +31,6 @@ USER_SERVICE_DEP = Annotated[UserService, Depends(get_user_service)]
 async def get_all_users_route(service: USER_SERVICE_DEP) -> list[UserRead]:
     return await service.get_all_users()
 
-
-@router.get(
-    '/{user_id}',
-    response_model=UserRead,
-    status_code=status.HTTP_200_OK,
-    responses={
-        **common_responses,
-    }
-)
-async def get_user_by_id_route(
-    user_id: int,
-    service: USER_SERVICE_DEP,
-) -> UserRead:
-    return await service.get_user_by_id(user_id)
-
-
 @router.get('/me')
 async def get_current_user_route(current_user: CURRENT_USER_DEP) -> UserRead:
     return current_user
@@ -81,3 +65,18 @@ async def delete_user_by_id_route(
     current_user: CURRENT_USER_DEP,
 ) -> None:
     await service.delete_user_by_id(current_user.id)
+
+
+@router.get(
+    '/{user_id}',
+    response_model=UserRead,
+    status_code=status.HTTP_200_OK,
+    responses={
+        **common_responses,
+    }
+)
+async def get_user_by_id_route(
+    user_id: int,
+    service: USER_SERVICE_DEP,
+) -> UserRead:
+    return await service.get_user_by_id(user_id)
