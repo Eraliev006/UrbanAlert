@@ -4,124 +4,131 @@ from typing import Optional
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src import User
 from src.auth import EmailAlreadyExists, hash_password, LoginUserOutput, \
     verify_password, PasswordIsIncorrect, TokenPairs, UserNotVerifyEmail, VerifyEmailSchema, OTPCodeNotFoundOrExpired, \
-    OTPCodeIsWrong, UserAlreadyVerifiedEmail, UserWithUsernameNotFound, UserWithEmailNotFound, InvalidTokenType
-from src.auth.utils import get_pairs_token, generate_otp_code, decode_token
+    OTPCodeIsWrong, UserAlreadyVerifiedEmail, UserWithUsernameNotFound, UserWithEmailNotFound, InvalidTokenType, \
+    NewAccessToken, get_pairs_token, generate_otp_code, decode_token, InvalidToken
+from src.auth.tokens.access import AccessTokenCreator
 from src.core import redis_client
-from src.notification import NotifierType
-from src.notification.notifier_factory import NotifierFactory
-from src.users import UserCreate, User, UserRead, change_user_is_verify_status, get_user_by_email
-from src.users import get_user_by_username, create_user
+from src.notification import NotifierType, NotifierFactory
+from src.users import UserCreate, UserRead, UserService
 
 
-async def register_user(db_session: AsyncSession, user:UserCreate) -> UserRead:
-    """
-    Function is register user in app.
-    Return EmailAlreadyExists exception if email already exists. Also return UserRead
-    :param user: getting the UserCreate instance to insert to db
-    :param db_session: takes session to make transaction with database
-    """
-    exists_user: Optional[User] = await get_user_by_email(db_session,str(user.email))
+class AuthService:
+    def __init__(self,db: AsyncSession, user_service: UserService):
+        self.user_service = user_service
+        self.db = db
 
-    if exists_user:
-        raise EmailAlreadyExists(str(user.email))
+    async def register_user(self, user: UserCreate) -> UserRead:
+        """
+        Function is register user in app.
+        Return EmailAlreadyExists exception if email already exists. Also return UserRead
+        :param user: getting the UserCreate instance to insert to db
+        """
+        exists_user: Optional[User] = await self.user_service.get_user_by_email(str(user.email))
 
-    hashed_password: str = hash_password(user.password.encode())
-    user = UserCreate(
-        **user.model_dump(exclude={'password'}),
-        password = hashed_password
-    )
+        if exists_user:
+            raise EmailAlreadyExists(str(user.email))
 
-    created_user: Optional[User] = await create_user(
-        db_session,
-        user
-    )
+        hashed_password: str = hash_password(user.password.encode())
+        user = UserCreate(
+            **user.model_dump(exclude={'password'}),
+            password=hashed_password
+        )
 
-    # Add notify to celery tasks
-    otp_code = generate_otp_code()
-    notifier = NotifierFactory.get_notifier(NotifierType.EMAIL)
+        created_user: Optional[User] = await self.user_service.create_user(
+            user
+        )
 
-    await notifier.notify(
-        to_user=str(created_user.email),
-        otp_code=otp_code
-    )
+        # Add notify to celery tasks
+        otp_code = generate_otp_code()
+        notifier = NotifierFactory.get_notifier(NotifierType.EMAIL)
 
-    await redis_client.set(
-        key = f'otp:{created_user.email}',
-        value = otp_code,
-        ex = timedelta(minutes=5)
-    )
+        await notifier.notify(
+            to_user=str(created_user.email),
+            otp_code=otp_code
+        )
 
-    return UserRead(**created_user.model_dump())
+        await redis_client.set(
+            key=f'otp:{created_user.email}',
+            value=otp_code,
+            ex=timedelta(minutes=5)
+        )
+
+        return UserRead(**created_user.model_dump())
 
 
-async def login_user(db_session: AsyncSession,form_data: OAuth2PasswordRequestForm) -> LoginUserOutput:
-    """
-    Function is login user in app.
-    Return UserWithUsernameNotFound exception if email not exists.
-    Return UserNotVerifyEmail if current user is not verify email
-    Return PasswordIsIncorrect if password is incorrect
-    Return LoginUserOutput if password and username is correct
-    :param form_data: getting the OAuth2PasswordRequestForm instance to check is user registered and check password and email
-    :param db_session: takes session to make transaction with database
-    """
-    exists_user: Optional[User] = await get_user_by_username(db_session, form_data.username)
+    async def login_user(self, form_data: OAuth2PasswordRequestForm) -> LoginUserOutput:
+        """
+        Logs in the user and returns JWT tokens for authentication.
 
-    if not exists_user:
-        raise UserWithUsernameNotFound(form_data.username)
+        :param form_data: OAuth2PasswordRequestForm instance with username and password.
+        :return: LoginUserOutput containing access and refresh tokens.
+        """
+        exists_user: Optional[User] = await self.user_service.get_user_by_username(form_data.username)
 
-    if not exists_user.is_verified:
-        raise UserNotVerifyEmail
+        if not exists_user:
+            raise UserWithUsernameNotFound(form_data.username)
 
-    if not verify_password(
-        plain_pass=form_data.password.encode(),
-        hashed_password=exists_user.password.encode()
-    ):
-        raise PasswordIsIncorrect
+        if not exists_user.is_verified:
+            raise UserNotVerifyEmail
 
-    payload = {
-        'sub': 'user',
-        'user_id': exists_user.id,
-        'is_verified': exists_user.is_verified
-    }
-    tokens: TokenPairs = get_pairs_token(payload)
+        if not verify_password(
+                plain_pass=form_data.password.encode(),
+                hashed_password=exists_user.password.encode()
+        ):
+            raise PasswordIsIncorrect
 
-    return LoginUserOutput(
-        access_token = tokens.access_token,
-        refresh_token = tokens.refresh_token,
-        token_type = 'bearer'
-    )
+        payload = {
+            'sub': 'user',
+            'user_id': exists_user.id,
+            'is_verified': exists_user.is_verified
+        }
+        token_pairs: TokenPairs = get_pairs_token(payload)
 
-async def verify_user_by_otp_code(db_session: AsyncSession, verify_data: VerifyEmailSchema) -> dict[str, str]:
-    user = await get_user_by_email(db_session, str(verify_data.email_user))
+        await redis_client.set(f'refresh_token:{exists_user.id}', token_pairs.refresh_token, ex=timedelta(days=30))
 
-    if not user:
-        raise UserWithEmailNotFound(str(verify_data.email_user))
+        return LoginUserOutput(
+            access_token=token_pairs.access_token,
+            refresh_token=token_pairs.refresh_token,
+            token_type='bearer'
+        )
 
-    if user.is_verified:
-        raise UserAlreadyVerifiedEmail(str(user.email))
 
-    saved_otp_code = await redis_client.get(f'otp:{verify_data.email_user}')
-    if saved_otp_code is None:
-        raise OTPCodeNotFoundOrExpired(str(user.email))
+    async def verify_user_by_otp_code(self, verify_data: VerifyEmailSchema) -> dict[str, str]:
+        user = await self.user_service.get_user_by_email(str(verify_data.email_user))
 
-    if saved_otp_code != verify_data.otp_code:
-        raise OTPCodeIsWrong
+        if not user:
+            raise UserWithEmailNotFound(str(verify_data.email_user))
 
-    await change_user_is_verify_status(db_session, user)
-    return {"message": "User verification successful"}
+        if user.is_verified:
+            raise UserAlreadyVerifiedEmail(str(user.email))
 
-async def refresh_token(refresh_token: str) -> LoginUserOutput:
-    payload = decode_token(refresh_token)
+        saved_otp_code = await redis_client.get(f'otp:{verify_data.email_user}')
+        if saved_otp_code is None:
+            raise OTPCodeNotFoundOrExpired(str(user.email))
 
-    if payload['type'] != 'refresh':
-        raise InvalidTokenType
-    tokens: TokenPairs = get_pairs_token(payload)
+        if saved_otp_code != verify_data.otp_code:
+            raise OTPCodeIsWrong
 
-    return LoginUserOutput(
-        access_token=tokens.access_token,
-        refresh_token=tokens.refresh_token,
-        token_type='bearer'
-    )
+        await self.user_service.change_user_is_verify_status(user)
+        return {"message": "User verification successful"}
+
+    @staticmethod
+    async def refresh_token(refresh_token: str) -> NewAccessToken:
+        payload = decode_token(refresh_token)
+        user_id = payload['user_id']
+
+        if payload['type'] != 'refresh':
+            raise InvalidTokenType
+
+        exists_refresh_token = await redis_client.get(f'refresh_token:{user_id}')
+
+        if not exists_refresh_token:
+            raise InvalidToken
+
+        new_access_token: str = AccessTokenCreator().generate(payload)
+
+        return NewAccessToken(new_access_token = new_access_token)
 
