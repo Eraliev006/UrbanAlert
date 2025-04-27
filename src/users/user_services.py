@@ -1,0 +1,164 @@
+
+from typing import Optional
+
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from src.common import IntegrityErrorException, DatabaseError
+from src.users import UserRead, UserCreate, User, UserWithIdNotFound, UserUpdate
+from src.core.database import Services
+
+
+class UserService(Services):
+    @classmethod
+    async def get_all_users(cls, db_session: AsyncSession) -> Optional[list[UserRead]]:
+        """
+        Method to get all user.
+        Return list[UserRead] | None
+        :param db_session: takes session to make transaction with database
+        """
+        try:
+            stmt = select(User)
+            users = await db_session.scalars(stmt)
+            return [UserRead(**user.model_dump()) for user in users]
+
+        except SQLAlchemyError:
+            raise DatabaseError('Error with db while getting all users')
+
+    @classmethod
+    async def create_user(cls, db_session: AsyncSession, user: UserCreate) -> User:
+        """
+        Method to create user in database
+        :param db_session: takes session to make transaction with database
+        :param user: takes user: UserCreate
+        :return: instance User, created in db
+        """
+        user = User(
+            **user.model_dump()
+        )
+
+        try:
+            db_session.add(user)
+            await db_session.commit()
+            await db_session.refresh(user)
+            return user
+
+        except IntegrityError:
+            raise IntegrityErrorException
+
+        except SQLAlchemyError:
+            raise DatabaseError('Error with DB while creating user')
+
+    @staticmethod
+    async def _get_user_by_id(db_session: AsyncSession, user_id: int) -> User:
+        try:
+            user: Optional[User] = await db_session.get(User, user_id)
+            return user
+        except SQLAlchemyError:
+            raise DatabaseError
+
+    @classmethod
+    async def get_user_by_id(cls, db_session: AsyncSession, user_id: int) -> Optional[UserRead]:
+        """
+        Async function to get user_by_id
+        :param db_session: take async db_session to make request to db
+        :param user_id: take user ids to get user by this id
+        :return: UserRead class, return created user or exception
+        """
+        user = await cls._get_user_by_id(db_session, user_id)
+        if not user:
+            raise UserWithIdNotFound(user_id)
+        return UserRead(**user.model_dump())
+
+    @classmethod
+    async def update_user_by_id(cls, db_session: AsyncSession, user_id: int, new_user_data: UserUpdate) -> Optional[
+        UserRead]:
+        """
+        Async method to update user by id
+        :param db_session: take async session to make request to db
+        :param user_id: take user ids to get user by this id and update
+        :param new_user_data: new user datas
+        :return: UserRead class, return updated user or exception
+        """
+        user: Optional[User] = await cls._get_user_by_id(db_session, user_id)
+
+        if not user:
+            raise UserWithIdNotFound(user_id)
+
+        for key, value in new_user_data.model_dump().items():
+            setattr(user, key, value)
+
+        db_session.add(user)
+        await db_session.commit()
+        await db_session.refresh(user)
+        return UserRead(**user.model_dump())
+
+    @classmethod
+    async def delete_user_by_id(cls, db_session: AsyncSession, user_id: int) -> None:
+        """
+        Async def to delete user by id
+        :param db_session: take async session to make request to db
+        :param user_id: get id to get user by id and delete
+        :return: None
+        """
+        user = await cls._get_user_by_id(db_session, user_id)
+
+        if not user:
+            raise UserWithIdNotFound(user_id)
+
+        try:
+            await db_session.delete(user)
+            await db_session.commit()
+        except SQLAlchemyError:
+            raise
+
+    @classmethod
+    async def get_user_by_email(cls, db_session: AsyncSession, email: str) -> Optional[User]:
+        """
+        Async def to get user by email
+        :param db_session: take async session to make request to db
+        :param email: get email to get user by email
+        :return: User
+        """
+        try:
+            stmt = select(User).where(User.email == email)
+            user: Optional[User] = await db_session.scalar(stmt)
+            return user
+        except SQLAlchemyError:
+            raise DatabaseError('')
+
+    @classmethod
+    async def get_user_by_username(cls, db_session: AsyncSession, username: str) -> Optional[User]:
+        """
+        Async def to get user by email
+        :param db_session: take async session to make request to db
+        :param username: get username to get user by email
+        :return: User
+        """
+        try:
+            stmt = select(User).where(User.username == username)
+            user: Optional[User] = await db_session.scalar(stmt)
+            return user
+        except SQLAlchemyError:
+            raise DatabaseError('')
+
+    @classmethod
+    async def change_user_is_verify_status(
+            cls,
+            db_session: AsyncSession,
+            user: User
+    ):
+        """
+        Async def to get change user status
+        :param db_session: take async session to make request to db
+        :param user: instance of user to change his status
+        """
+        user.is_verified = True
+        try:
+            await db_session.commit()
+            await db_session.refresh(user)
+            return user
+        except SQLAlchemyError:
+            await db_session.rollback()
+            raise DatabaseError
