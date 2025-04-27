@@ -9,6 +9,7 @@ from src.auth import InvalidSignatureException
 from src.auth.exceptions import ExpiredTokenSignatureException
 from src.core import settings
 from src.core.redis_client import RedisClient
+from src.tokens import TokenType
 
 
 class TokenService:
@@ -32,13 +33,13 @@ class TokenService:
             self,
             payload: dict[str, Any],
             expire_in_minutes: int,
-            token_type: str,
+            token_type: TokenType,
             secret_key: str = settings.jwt.secret_key,
             algorithm: str = settings.jwt.algorithm,
     ) -> str:
         token_payload = {
             **payload,
-            'type': token_type,
+            'type': token_type.value,
             'exp': self.get_token_expiration(expire_in_minutes)
         }
         return jwt.encode(
@@ -58,7 +59,7 @@ class TokenService:
         return self._build_token(
             payload=payload,
             expire_in_minutes=settings.jwt.access_expires_in_minutes,
-            token_type='access'
+            token_type=TokenType.access
         )
 
     def create_refresh_token(self, user_id: int, username: str) -> str:
@@ -69,7 +70,7 @@ class TokenService:
         return self._build_token(
             payload=payload,
             expire_in_minutes=settings.jwt.refresh_expires_in_minutes,
-            token_type='refresh'
+            token_type=TokenType.refresh
         )
 
     @staticmethod
