@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
 
-from src.auth import AuthService, LoginUserOutput, VerifyEmailSchema, RefreshTokenRequest
+from src.auth import AuthService, LoginUserOutput, VerifyEmailSchema
 from src.common import ErrorResponse
 from src.core import get_auth_service
+from src.tokens.schemas import RefreshTokenRequest
 from src.users import UserRead, UserCreate
 
 router = APIRouter(
