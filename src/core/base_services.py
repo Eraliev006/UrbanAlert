@@ -8,7 +8,7 @@ from src.users import UserService
 
 class Services:
     def __init__(self, db: AsyncSession):
-        self.token_repo = TokenService(redis_client)
+        self.token_service = TokenService(redis_client)
 
         self.user = UserService(db)
-        self.auth_service = AuthService(db, self.user,self.token_repo)
+        self.auth_service = AuthService(db, self.user,self.token_service)
