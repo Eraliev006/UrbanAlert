@@ -5,9 +5,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import User
-from src.auth import EmailAlreadyExists, hash_password, LoginUserOutput, \
+from src.auth import hash_password, LoginUserOutput, \
     verify_password, PasswordIsIncorrect, TokenPairs, UserNotVerifyEmail, VerifyEmailSchema, OTPCodeNotFoundOrExpired, \
-    OTPCodeIsWrong, UserAlreadyVerifiedEmail, UserWithUsernameNotFound, UserWithEmailNotFound, InvalidTokenType, \
+    OTPCodeIsWrong, UserAlreadyVerifiedEmail, UserWithUsernameNotFound, UserWithEmailNotFound, InvalidTokenType, EmailOrUsernameAlreadyExists, \
     NewAccessToken, get_pairs_token, generate_otp_code, decode_token, RefreshTokenNotFound
 from src.auth.tokens.access import AccessTokenCreator
 from src.auth.tokens.token_repository import TokenRepository
@@ -31,7 +31,7 @@ class AuthService:
         exists_user: Optional[User] = await self.user_service.get_user_by_email_or_username(str(user.email), user.username)
 
         if exists_user:
-            raise EmailAlreadyExists(str(user.email))
+            raise EmailOrUsernameAlreadyExists(str(user.email), exists_user.username)
 
         hashed_password: str = hash_password(user.password.encode())
         user = UserCreate(
