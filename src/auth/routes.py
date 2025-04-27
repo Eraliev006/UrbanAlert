@@ -2,21 +2,19 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette import status
 
-from src.auth import register_user, login_user, LoginUserOutput, verify_user_by_otp_code, VerifyEmailSchema, \
-    refresh_token, RefreshTokenRequest
+from src.auth import AuthService, LoginUserOutput, VerifyEmailSchema, RefreshTokenRequest
 from src.common import ErrorResponse
-from src.core import database_helper
-from src.users import UserCreate, UserRead
+from src.core import get_auth_service
+from src.users import UserRead, UserCreate
 
 router = APIRouter(
     tags=['JWT Auth'],
     prefix='/auth',
 )
 
-SESSION_DEP = Annotated[AsyncSession, Depends(database_helper.session_getter)]
+AUTH_SERVICE_DEP = Annotated[AuthService, Depends(get_auth_service)]
 
 @router.post('/register-user',
              response_model=UserRead,
@@ -32,8 +30,8 @@ SESSION_DEP = Annotated[AsyncSession, Depends(database_helper.session_getter)]
                  }
              }
 )
-async def register_user_route(db_session: SESSION_DEP, user_data: UserCreate):
-    return await register_user(db_session, user_data)
+async def register_user_route(user_data: UserCreate, auth_service: AUTH_SERVICE_DEP):
+    return await auth_service.register_user(user_data)
 
 @router.post(
     '/login-user',
@@ -54,8 +52,8 @@ async def register_user_route(db_session: SESSION_DEP, user_data: UserCreate):
         },
     }
 )
-async def login_user_router(db_session: SESSION_DEP, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    return await login_user(db_session, form_data)
+async def login_user_router(auth_service: AUTH_SERVICE_DEP, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    return await auth_service.login_user(form_data)
 
 @router.post(
     '/verify-code',
@@ -64,12 +62,13 @@ async def login_user_router(db_session: SESSION_DEP, form_data: Annotated[OAuth2
 )
 async def verify_code_route(
         verify_data: VerifyEmailSchema,
-        session: SESSION_DEP,
+        auth_service: AUTH_SERVICE_DEP
 ):
-    return await verify_user_by_otp_code(session, verify_data)
+    return await auth_service.verify_user_by_otp_code(verify_data)
 
 @router.post('/refresh')
 async def refresh_token_route(
-        refresh_token_request: RefreshTokenRequest
+        refresh_token_request: RefreshTokenRequest,
+        auth_service: AUTH_SERVICE_DEP
 ):
-    return await refresh_token(refresh_token_request.refresh_token)
+    return await auth_service.refresh_token(refresh_token_request.refresh_token)
