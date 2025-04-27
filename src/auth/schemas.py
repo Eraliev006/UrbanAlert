@@ -16,3 +16,6 @@ class VerifyEmailSchema(SQLModel):
 
 class RefreshTokenRequest(SQLModel):
     refresh_token: str
+
+class NewAccessToken(SQLModel):
+    new_access_token: str
