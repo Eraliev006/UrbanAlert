@@ -7,7 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from src.common import IntegrityErrorException, DatabaseError
-from src.users import UserRead, UserCreate, User, UserWithIdNotFound, UserUpdate
+from src.users import UserRead, UserCreate, User, UserWithIdNotFound, UserUpdate, UserWithUsernameAlreadyExists, \
+    EmailAlreadyExists
 
 
 class UserService:
@@ -67,6 +68,15 @@ class UserService:
             raise UserWithIdNotFound(user_id)
         return UserRead(**user.model_dump())
 
+    async def _check_email_and_username_to_unique(self, email: str, username: str):
+        user_by_email = await self.get_user_by_email(email)
+        user_by_username = await self.get_user_by_username(username)
+
+        if user_by_email:
+            raise EmailAlreadyExists(email)
+        if user_by_username:
+            raise UserWithUsernameAlreadyExists(username)
+
     async def update_user_by_id(self, user_id: int, new_user_data: UserUpdate) -> Optional[
         UserRead]:
         """
@@ -79,6 +89,8 @@ class UserService:
 
         if not user:
             raise UserWithIdNotFound(user_id)
+
+        await self._check_email_and_username_to_unique(str(user.email), user.username)
 
         for key, value in new_user_data.model_dump().items():
             setattr(user, key, value)
