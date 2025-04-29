@@ -6,13 +6,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import User
 from src.auth import hash_password, LoginUserOutput, \
-    verify_password, PasswordIsIncorrect, UserNotVerifyEmail, VerifyEmailSchema, OTPCodeNotFoundOrExpired, \
-    OTPCodeIsWrong, UserAlreadyVerifiedEmail, UserWithUsernameNotFound, UserWithEmailNotFound, InvalidTokenType, EmailOrUsernameAlreadyExists, \
+    verify_password, PasswordIsIncorrect,VerifyEmailSchema, OTPCodeNotFoundOrExpired, \
+    OTPCodeIsWrong, InvalidTokenType, \
     generate_otp_code, RefreshTokenNotFound
 from src.tokens import TokenService
 from src.core import redis_client
 from src.notification import NotifierType, NotifierFactory
-from src.users import UserCreate, UserRead, UserService
+from src.users import UserCreate, UserRead, UserService, UserWithUsernameNotFound, UserNotVerifyEmail, \
+    UserWithEmailNotFound, UserAlreadyVerifiedEmail
+from src.users import EmailOrUsernameAlreadyExists
 
 
 class AuthService:
