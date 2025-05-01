@@ -10,6 +10,7 @@ from src.users import UserRead, UserUpdate, UserService
 router = APIRouter(
     tags=['Users'],
     prefix='/users',
+    dependencies=[Depends(get_current_user)]
 )
 
 common_responses = {
@@ -27,7 +28,7 @@ USER_SERVICE_DEP = Annotated[UserService, Depends(get_user_service)]
     response_model=list[UserRead],
     status_code=status.HTTP_200_OK,
 )
-async def get_all_users_route(service: USER_SERVICE_DEP, current_user: CURRENT_USER_DEP) -> list[UserRead]:
+async def get_all_users_route(service: USER_SERVICE_DEP) -> list[UserRead]:
     return await service.get_all_users()
 
 @router.get('/me')
@@ -77,6 +78,5 @@ async def delete_user_by_id_route(
 async def get_user_by_id_route(
     user_id: int,
     service: USER_SERVICE_DEP,
-    current_user: CURRENT_USER_DEP
 ) -> UserRead:
     return await service.get_user_by_id(user_id)
