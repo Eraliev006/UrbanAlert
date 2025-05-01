@@ -1,1 +1,1 @@
-from .exceptions import DatabaseError, IntegrityErrorException, ErrorResponse, BaseHTTPException
+from .exceptions import DatabaseError, IntegrityErrorException, ErrorResponse, BaseHTTPException, NotFoundException
