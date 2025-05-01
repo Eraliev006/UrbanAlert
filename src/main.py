@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from src.core import settings, redis_client, database_helper
 from auth.routes import router as auth_router
 from users.routes import router as user_router
-
+from complaints.complaint_routes import router as complaint_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,6 +21,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.include_router(auth_router)
 app.include_router(user_router)
+app.include_router(complaint_router)
 
 if __name__ == "__main__":
     uvicorn.run(
