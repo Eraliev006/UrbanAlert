@@ -3,8 +3,7 @@ from datetime import timedelta, timezone
 from typing import Optional, Any
 
 import jwt
-from jwt import InvalidSignatureError, ExpiredSignatureError, DecodeError
-
+from jwt import InvalidSignatureError, ExpiredSignatureError
 from src.core import settings
 from src.core.redis_client import RedisClient
 from .exceptions import InvalidTokenType, InvalidSignatureException, ExpiredTokenSignatureException, DecodeTokenError
