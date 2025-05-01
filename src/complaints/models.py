@@ -1,5 +1,7 @@
 import datetime
 from typing import Optional
+
+from sqlalchemy.orm import Relationship
 from sqlmodel import SQLModel, Field
 from .complaint_status import ComplaintStatus
 
@@ -19,6 +21,8 @@ class Complaint(ComplaintBase, table=True):
     status: ComplaintStatus = Field(default=ComplaintStatus.PENDING, nullable=False)
     created_at: datetime.date = Field(default_factory=datetime.date.today)
     updated_at: datetime.date = Field(default_factory=datetime.date.today)
+
+    user: "User" = Relationship(back_populates='complaints')
 
 
 class ComplaintCreate(ComplaintBase):

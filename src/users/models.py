@@ -2,6 +2,7 @@ import datetime
 from typing import Optional
 
 from pydantic import EmailStr
+from sqlalchemy.orm import Relationship
 from sqlmodel import SQLModel, Field
 
 
@@ -18,6 +19,8 @@ class User(BaseUser, table = True):
     password: str = Field(nullable=False)
     is_verified: bool = Field(default=False, nullable=False)
     created_at: datetime.date = Field(default_factory=datetime.date.today)
+
+    complaints: list["Complaint"] = Relationship('user')
 
 class UserCreate(BaseUser):
     password: str
