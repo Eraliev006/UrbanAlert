@@ -1,4 +1,4 @@
-from .models import Complaint
-from .complaint_status import ComplaintStatus
-from .exceptions import ComplaintWithIdNotFound, AccessDenied
-from .complaint_services import ComplaintService
+from src.complaints.complaint_status import ComplaintStatus
+from src.complaints.models import Complaint, ComplaintRead, ComplaintUpdate, ComplaintCreate
+from src.complaints.exceptions import ComplaintWithIdNotFound, AccessDenied
+from src.complaints.complaint_services import ComplaintService

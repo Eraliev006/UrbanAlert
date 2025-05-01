@@ -1,2 +1,2 @@
 from .users import User
-from .complaints import Complaint, ComplaintStatus
+from .complaints import ComplaintStatus, Complaint
