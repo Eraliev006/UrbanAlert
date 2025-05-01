@@ -3,12 +3,11 @@ from datetime import timedelta, timezone
 from typing import Optional, Any
 
 import jwt
-from jwt import InvalidSignatureError, ExpiredSignatureError
+from jwt import InvalidSignatureError, ExpiredSignatureError, DecodeError
 
-from src.auth import InvalidSignatureException
-from src.auth.exceptions import ExpiredTokenSignatureException
 from src.core import settings
 from src.core.redis_client import RedisClient
+from .exceptions import InvalidTokenType, InvalidSignatureException, ExpiredTokenSignatureException, DecodeTokenError
 from src.tokens.token_type import TokenType
 
 
@@ -74,20 +73,27 @@ class TokenService:
         )
 
     @staticmethod
-    def decode_token(
+    def decode_token_with_token_type_checking(
             token: str,
+            token_type: TokenType,
             algorithm: str = settings.jwt.algorithm,
             secret_key=settings.jwt.secret_key
     ):
         try:
-            return jwt.decode(
+            decoded = jwt.decode(
                 jwt=token,
                 algorithms=[algorithm],
                 key=secret_key,
             )
+            if decoded['type'] != token_type.value:
+                raise InvalidTokenType
 
+            return decoded
         except InvalidSignatureError:
             raise InvalidSignatureException
 
         except ExpiredSignatureError:
             raise ExpiredTokenSignatureException
+
+        except jwt.DecodeError:
+            raise DecodeTokenError
