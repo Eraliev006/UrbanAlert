@@ -7,9 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src import User
 from src.auth import hash_password, LoginUserOutput, \
     verify_password, PasswordIsIncorrect,VerifyEmailSchema, OTPCodeNotFoundOrExpired, \
-    OTPCodeIsWrong, InvalidTokenType, \
-    generate_otp_code, RefreshTokenNotFound
-from src.tokens import TokenService
+    OTPCodeIsWrong, generate_otp_code
+from src.tokens import TokenService, TokenType, RefreshTokenNotFound
 from src.core import redis_client
 from src.notification import NotifierType, NotifierFactory
 from src.users import UserCreate, UserRead, UserService, UserWithUsernameNotFound, UserNotVerifyEmail, \
@@ -32,7 +31,7 @@ class AuthService:
         exists_user: Optional[User] = await self.user_service.get_user_by_email_or_username(str(user.email), user.username)
 
         if exists_user:
-            raise EmailOrUsernameAlreadyExists(str(user.email), exists_user.username)
+            raise EmailOrUsernameAlreadyExists(str(user.email), user.username)
 
         hashed_password: str = hash_password(user.password.encode())
         user = UserCreate(
@@ -127,11 +126,8 @@ class AuthService:
         return {"message": "User verification successful"}
 
     async def refresh_token(self, refresh_token: str) -> LoginUserOutput:
-        payload = self.token_service.decode_token(refresh_token)
+        payload = self.token_service.decode_token_with_token_type_checking(refresh_token, TokenType.refresh)
         user_id = int(payload['sub'])
-
-        if payload['type'] != 'refresh':
-            raise InvalidTokenType
 
         exists_refresh_token = await self.token_service.get_refresh_token(user_id)
 
