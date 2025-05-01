@@ -41,3 +41,14 @@ async def update_complaint_by_id(
         new_data = complaint_update_data,
         user_id=current_user.id
     )
+
+@router.delete('/{complaint_id}')
+async def delete_complaint_by_id(
+        complaint_id: int,
+        complaint_service: COMPLAINT_SERVICE_DEP,
+        current_user: CURRENT_USER_DEP
+):
+    return await complaint_service.delete_by_id(
+        complaint_id = complaint_id,
+        user_id=current_user.id
+    )
