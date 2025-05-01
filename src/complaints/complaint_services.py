@@ -1,12 +1,12 @@
+import logging
 from typing import Optional
 
-from sqlalchemy import select, Result
+from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.common import DatabaseError
-from src.complaints import ComplaintWithIdNotFound, AccessDenied
-from src.complaints.models import ComplaintCreate, Complaint, ComplaintRead, ComplaintUpdate
+from src.complaints import ComplaintWithIdNotFound, AccessDenied, ComplaintCreate, Complaint, ComplaintRead, ComplaintUpdate
 
 
 class ComplaintService:
@@ -36,12 +36,12 @@ class ComplaintService:
     async def get_all(self) -> Optional[list[ComplaintRead]]:
         try:
             stmt = select(Complaint)
-            result: Result = await self.db.execute(stmt)
-            complaints = result.scalars()
-            return list(ComplaintRead(**i.model_dump()) for i in complaints)
+            result = await self.db.scalars(stmt)
+            return [ComplaintRead(**i.model_dump()) for i in result]
 
-        except SQLAlchemyError:
-            raise DatabaseError('Error while getting all Complaints')
+        except SQLAlchemyError as e:
+            logging.exception('Exception ')
+            raise e
 
 
     async def _get_by_id(self, complaint_id: int) -> Optional[Complaint]:
@@ -50,8 +50,8 @@ class ComplaintService:
             if not complaint:
                 raise ComplaintWithIdNotFound(complaint_id)
 
-        except SQLAlchemyError:
-            raise DatabaseError('Error while getting user with id')
+        except SQLAlchemyError as e:
+            raise DatabaseError(f'Error while getting complaint with id {e}')
 
 
     async def get_by_id(self, complaint_id: int) -> ComplaintRead:
