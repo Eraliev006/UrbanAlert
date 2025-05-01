@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import HTTPException
 from starlette import status
 
-from src.common import BaseHTTPException
+from src.common import BaseHTTPException, NotFoundException
 
 
 class UserWithIdNotFound(HTTPException):
@@ -24,18 +24,18 @@ class EmailOrUsernameAlreadyExists(BaseHTTPException):
         super().__init__(status_code=status.HTTP_409_CONFLICT, detail=detail)
 
 
-class UserWithEmailNotFound(BaseHTTPException):
+class UserWithEmailNotFound(NotFoundException):
     def __init__(self, email: str):
-        super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail=f'Email - {email} is not found')
+        super().__init__(detail=f'Email - {email} is not found')
 
 class UserNotVerifyEmail(BaseHTTPException):
     def __init__(self):
         super().__init__(status_code=status.HTTP_403_FORBIDDEN, detail='User is not verified email')
 
 
-class UserWithUsernameNotFound(BaseHTTPException):
+class UserWithUsernameNotFound(NotFoundException):
     def __init__(self, username: str):
-        super().__init__(status_code=status.HTTP_404_NOT_FOUND, detail=f'Username - {username} is not found')
+        super().__init__(detail=f'Username - {username} is not found')
 
 
 class UserAlreadyVerifiedEmail(BaseHTTPException):
