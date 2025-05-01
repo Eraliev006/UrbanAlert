@@ -13,13 +13,14 @@ class ComplaintService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create_complaint(self, complaint: ComplaintCreate) -> Optional[ComplaintRead]:
+    async def create_complaint(self, complaint: ComplaintCreate, user_id: int) -> Optional[ComplaintRead]:
         """
         Method that creates new complaint in DB
         :param complaint:
         """
         complaint_in_db = Complaint(
-            **complaint.model_dump()
+            **complaint.model_dump(),
+            user_id = user_id
         )
 
         try:
