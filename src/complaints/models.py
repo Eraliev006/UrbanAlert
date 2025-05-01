@@ -11,6 +11,10 @@ if TYPE_CHECKING:
 class ComplaintBase(SQLModel):
     complaint_text: str
     category: Optional[str] = None
+    image_url: str = Field(nullable=True)
+    latitude: float = Field(nullable=False)
+    longitude: float = Field(nullable=False)
+    description:str = Field(nullable=True)
 
 
 class Complaint(ComplaintBase, table=True):
@@ -27,7 +31,6 @@ class Complaint(ComplaintBase, table=True):
 
 
 class ComplaintCreate(ComplaintBase):
-    user_id: int
     status: Optional[ComplaintStatus] = Field(default=ComplaintStatus.PENDING)
 
 
