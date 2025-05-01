@@ -1,9 +1,11 @@
 import datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
-from sqlalchemy.orm import Relationship
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
 from .complaint_status import ComplaintStatus
+
+if TYPE_CHECKING:
+    from src import User
 
 
 class ComplaintBase(SQLModel):

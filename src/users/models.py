@@ -1,9 +1,11 @@
 import datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from pydantic import EmailStr
-from sqlalchemy.orm import Relationship
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
+
+if TYPE_CHECKING:
+    from src import Complaint
 
 
 class BaseUser(SQLModel):
@@ -20,7 +22,7 @@ class User(BaseUser, table = True):
     is_verified: bool = Field(default=False, nullable=False)
     created_at: datetime.date = Field(default_factory=datetime.date.today)
 
-    complaints: list["Complaint"] = Relationship('user')
+    complaints: list["Complaint"] = Relationship(back_populates='user')
 
 class UserCreate(BaseUser):
     password: str
