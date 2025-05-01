@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from starlette import status
 
 from src.common import ErrorResponse
-from src.core import get_current_user, get_user_service, oauth2_scheme
+from src.core import get_current_user, get_user_service
 from src.users import UserRead, UserUpdate, UserService
 
 router = APIRouter(
@@ -21,14 +21,13 @@ common_responses = {
 
 CURRENT_USER_DEP = Annotated[UserRead, Depends(get_current_user)]
 USER_SERVICE_DEP = Annotated[UserService, Depends(get_user_service)]
-TOKEN_DEPENDS = Annotated[str, Depends(oauth2_scheme)]
 
 @router.get(
     '/',
     response_model=list[UserRead],
     status_code=status.HTTP_200_OK,
 )
-async def get_all_users_route(service: USER_SERVICE_DEP, token: TOKEN_DEPENDS) -> list[UserRead]:
+async def get_all_users_route(service: USER_SERVICE_DEP, current_user: CURRENT_USER_DEP) -> list[UserRead]:
     return await service.get_all_users()
 
 @router.get('/me')
@@ -78,6 +77,6 @@ async def delete_user_by_id_route(
 async def get_user_by_id_route(
     user_id: int,
     service: USER_SERVICE_DEP,
-    token: TOKEN_DEPENDS
+    current_user: CURRENT_USER_DEP
 ) -> UserRead:
     return await service.get_user_by_id(user_id)
