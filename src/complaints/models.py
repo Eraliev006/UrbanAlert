@@ -9,7 +9,6 @@ from .complaint_status import ComplaintStatus
 class ComplaintBase(SQLModel):
     complaint_text: str
     category: Optional[str] = None
-    priority: Optional[str] = None
 
 
 class Complaint(ComplaintBase, table=True):
@@ -39,4 +38,4 @@ class ComplaintRead(ComplaintBase):
 
 
 class ComplaintUpdate(SQLModel):
-    status: Optional[ComplaintStatus] = None
+    status: Optional[ComplaintStatus] = ComplaintStatus.PENDING
