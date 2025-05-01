@@ -8,7 +8,7 @@ from src import User
 from src.auth import hash_password, LoginUserOutput, \
     verify_password, PasswordIsIncorrect,VerifyEmailSchema, OTPCodeNotFoundOrExpired, \
     OTPCodeIsWrong, generate_otp_code
-from src.tokens import TokenService, TokenType, RefreshTokenNotFound
+from src.tokens import TokenService, TokenType, RefreshTokenNotFound, InvalidSignatureException
 from src.core import redis_client
 from src.notification import NotifierType, NotifierFactory
 from src.users import UserCreate, UserRead, UserService, UserWithUsernameNotFound, UserNotVerifyEmail, \
@@ -134,10 +134,15 @@ class AuthService:
         if not exists_refresh_token:
             raise RefreshTokenNotFound
 
+        if exists_refresh_token != refresh_token:
+            raise InvalidSignatureException
+
+        await self.token_service.delete_refresh_token(user_id)
         user: UserRead = await self.user_service.get_user_by_id(int(payload['sub']))
 
         new_access_token, new_refresh_token = self._get_access_and_refresh_tokens(user)
 
+        await self.token_service.save_refresh_token(user_id, new_refresh_token)
         return LoginUserOutput(
             access_token = new_access_token,
             refresh_token = new_refresh_token,
