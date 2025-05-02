@@ -14,5 +14,5 @@ class Services:
 
         self.complaint_service = ComplaintService(db)
         self.user = UserService(db)
-        self.auth_service = AuthService(db, self.user,self.token_service)
         self.email_service = EmailNotificationService()
+        self.auth_service = AuthService(db, self.user,self.token_service, email_service=self.email_service)
