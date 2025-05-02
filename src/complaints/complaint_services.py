@@ -1,12 +1,14 @@
 import logging
 from typing import Optional
 
-from sqlalchemy import select
+from sqlmodel import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import and_
 
 from src.common import DatabaseError
-from src.complaints import ComplaintWithIdNotFound, AccessDenied, ComplaintCreate, Complaint, ComplaintRead, ComplaintUpdate
+from src.complaints import ComplaintWithIdNotFound, AccessDenied, ComplaintCreate, Complaint, ComplaintRead, \
+    ComplaintUpdate, ComplaintQueryModel
 
 
 class ComplaintService:
@@ -17,6 +19,7 @@ class ComplaintService:
         """
         Method that creates new complaint in DB
         :param complaint:
+        :param user_id:
         """
         complaint_in_db = Complaint(
             **complaint.model_dump(),
@@ -28,15 +31,18 @@ class ComplaintService:
             await self.db.commit()
             await self.db.refresh(complaint_in_db)
 
-            return ComplaintRead(**complaint.model_dump())
+            return ComplaintRead(**complaint_in_db.model_dump())
         except SQLAlchemyError:
             await self.db.rollback()
             raise DatabaseError('Error while adding new complaint')
 
 
-    async def get_all(self) -> Optional[list[ComplaintRead]]:
+    async def get_all(self, query_params: Optional[ComplaintQueryModel]) -> Optional[list[ComplaintRead]]:
         try:
-            stmt = select(Complaint)
+            stmt = select(Complaint).where(and_(
+                Complaint.status == query_params.status,
+                Complaint.category == query_params.category
+            ))
             result = await self.db.scalars(stmt)
             return [ComplaintRead(**i.model_dump()) for i in result]
 
@@ -88,3 +94,13 @@ class ComplaintService:
             await self.db.commit()
         except SQLAlchemyError:
             raise DatabaseError("Database error while deleting complaint")
+
+    async def get_complaints_by_user_id(self, user_id: int) -> list[ComplaintRead]:
+        try:
+            stmt = select(Complaint).where(Complaint.user_id == user_id)
+            result = await self.db.scalars(stmt)
+            complaints = result.all()
+            return [ComplaintRead(**c.model_dump()) for c in complaints]
+        except SQLAlchemyError:
+            await self.db.rollback()
+            raise DatabaseError('Error while fetching complaints for user')
