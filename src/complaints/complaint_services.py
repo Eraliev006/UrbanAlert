@@ -1,4 +1,3 @@
-import logging
 from typing import Optional
 
 from sqlmodel import select
@@ -47,7 +46,6 @@ class ComplaintService:
             return [ComplaintRead(**i.model_dump()) for i in result]
 
         except SQLAlchemyError as e:
-            logging.exception('Exception ')
             raise e
 
 
@@ -80,6 +78,7 @@ class ComplaintService:
             await self.db.refresh(complaint)
             return ComplaintRead(**complaint.model_dump())
         except SQLAlchemyError:
+            await self.db.rollback()
             raise DatabaseError('database error while updating complaint')
 
 
@@ -93,6 +92,7 @@ class ComplaintService:
             await self.db.delete(complaint)
             await self.db.commit()
         except SQLAlchemyError:
+            await self.db.rollback()
             raise DatabaseError("Database error while deleting complaint")
 
     async def get_complaints_by_user_id(self, user_id: int) -> list[ComplaintRead]:
@@ -102,5 +102,4 @@ class ComplaintService:
             complaints = result.all()
             return [ComplaintRead(**c.model_dump()) for c in complaints]
         except SQLAlchemyError:
-            await self.db.rollback()
             raise DatabaseError('Error while fetching complaints for user')
