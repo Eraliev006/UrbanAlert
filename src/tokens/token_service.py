@@ -8,6 +8,8 @@ from src.core import settings
 from src.core.redis_client import RedisClient
 from .exceptions import InvalidTokenType, InvalidSignatureException, ExpiredTokenSignatureException, DecodeTokenError
 from src.tokens.token_type import TokenType
+from .. import User
+from ..users import UserRead
 
 
 class TokenService:
@@ -70,6 +72,20 @@ class TokenService:
             expire_in_minutes=settings.jwt.refresh_expires_in_minutes,
             token_type=TokenType.refresh
         )
+
+    def get_access_and_refresh_tokens(self, user: User | UserRead):
+        access_token = self.create_access_token(
+            user_id=user.id,
+            username=user.username,
+            email=str(user.email),
+            avatar_url=user.avatar_url,
+            is_verified=user.is_verified
+        )
+        refresh_token = self.create_refresh_token(
+            user_id=user.id,
+            username=user.username,
+        )
+        return access_token, refresh_token
 
     @staticmethod
     def decode_token_with_token_type_checking(
