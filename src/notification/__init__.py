@@ -1,4 +1,2 @@
-from .notifier import Notifier
-from .notifier_type import NotifierType
-from .email_notifier import EmailNotifier
-from .notifier_factory import NotifierFactory
+from .schemas import EmailNotification
+from .email_notification_service import EmailNotificationService
