@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import AuthService
 from src.complaints import ComplaintService
+from src.notification import EmailNotificationService
 from src.tokens.token_service import TokenService
 from src.core import redis_client
 from src.users import UserService
@@ -14,3 +15,4 @@ class Services:
         self.complaint_service = ComplaintService(db)
         self.user = UserService(db)
         self.auth_service = AuthService(db, self.user,self.token_service)
+        self.email_service = EmailNotificationService()
