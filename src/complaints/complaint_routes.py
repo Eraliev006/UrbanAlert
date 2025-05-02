@@ -1,8 +1,8 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
-from src.complaints import ComplaintService, ComplaintUpdate, ComplaintCreate
+from src.complaints import ComplaintService, ComplaintUpdate, ComplaintCreate, ComplaintQueryModel
 from src.core import get_current_user
 from src.core.dependencies import get_complaint_service
 from src.users import UserRead
@@ -18,8 +18,11 @@ CURRENT_USER_DEP = Annotated[UserRead, Depends(get_current_user)]
 
 
 @router.get('/')
-async def get_all_complaints_route(complaint_service: COMPLAINT_SERVICE_DEP):
-    return await complaint_service.get_all()
+async def get_all_complaints_route(
+        complaint_service: COMPLAINT_SERVICE_DEP,
+        query: Annotated[ComplaintQueryModel, Query()]
+):
+    return await complaint_service.get_all(query_params=query)
 
 @router.post('/')
 async def create_complaints(complaint_service: COMPLAINT_SERVICE_DEP, complaint:ComplaintCreate, current_user: CURRENT_USER_DEP):
