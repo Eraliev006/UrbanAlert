@@ -8,18 +8,19 @@ from src import User
 from src.auth import hash_password, LoginUserOutput, \
     verify_password, PasswordIsIncorrect,VerifyEmailSchema, OTPCodeNotFoundOrExpired, \
     OTPCodeIsWrong, generate_otp_code
+from src.notification import EmailNotificationService
 from src.tokens import TokenService, TokenType, RefreshTokenNotFound, InvalidSignatureException
 from src.core import redis_client
-from src.notification import NotifierType, NotifierFactory
 from src.users import UserCreate, UserRead, UserService, UserWithUsernameNotFound, UserNotVerifyEmail, \
     UserWithEmailNotFound, UserAlreadyVerifiedEmail
 from src.users import EmailOrUsernameAlreadyExists
 
 
 class AuthService:
-    def __init__(self,db: AsyncSession, user_service: UserService, token_service: TokenService):
+    def __init__(self,db: AsyncSession, user_service: UserService, token_service: TokenService, email_service: EmailNotificationService):
         self.token_service = token_service
         self.user_service = user_service
+        self.email_service = email_service
         self.db = db
 
     async def register_user(self, user: UserCreate) -> UserRead:
@@ -43,12 +44,10 @@ class AuthService:
             user
         )
 
-        # Add notify to celery tasks
         otp_code = generate_otp_code()
-        notifier = NotifierFactory.get_notifier(NotifierType.EMAIL)
 
-        await notifier.notify(
-            to_user=str(created_user.email),
+        await self.email_service.send_otp(
+            to_email=str(created_user.email),
             otp_code=otp_code
         )
 
@@ -59,20 +58,6 @@ class AuthService:
         )
 
         return UserRead(**created_user.model_dump())
-
-    def _get_access_and_refresh_tokens(self, user: User | UserRead):
-        access_token = self.token_service.create_access_token(
-            user_id=user.id,
-            username=user.username,
-            email=str(user.email),
-            avatar_url=user.avatar_url,
-            is_verified=user.is_verified
-        )
-        refresh_token = self.token_service.create_refresh_token(
-            user_id=user.id,
-            username=user.username,
-        )
-        return access_token, refresh_token
 
     async def login_user(self, form_data: OAuth2PasswordRequestForm) -> LoginUserOutput:
         """
@@ -95,7 +80,7 @@ class AuthService:
         ):
             raise PasswordIsIncorrect
 
-        access_token, refresh_token = self._get_access_and_refresh_tokens(exists_user)
+        access_token, refresh_token = self.token_service.get_access_and_refresh_tokens(exists_user)
 
         await self.token_service.save_refresh_token(exists_user.id, refresh_token)
 
@@ -140,7 +125,7 @@ class AuthService:
         await self.token_service.delete_refresh_token(user_id)
         user: UserRead = await self.user_service.get_user_by_id(int(payload['sub']))
 
-        new_access_token, new_refresh_token = self._get_access_and_refresh_tokens(user)
+        new_access_token, new_refresh_token = self.token_service.get_access_and_refresh_tokens(user)
 
         await self.token_service.save_refresh_token(user_id, new_refresh_token)
         return LoginUserOutput(
