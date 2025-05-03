@@ -20,7 +20,13 @@ class EmailAlreadyExists(BaseHTTPException):
 
 class EmailOrUsernameAlreadyExists(BaseHTTPException):
     def __init__(self, email: Optional[str], username: Optional[str]):
-        detail = f'Email - {email} or username - {username} already exists'
+        detail = ''
+        if email:
+            detail = f'User with email - {email} already exists'
+        if username:
+            detail = f'User with username - {username} already exists'
+        if username and email:
+            detail = f'User with email - {email} and username - {username} already exists'
         super().__init__(status_code=status.HTTP_409_CONFLICT, detail=detail)
 
 
