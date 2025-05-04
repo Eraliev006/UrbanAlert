@@ -1,20 +1,22 @@
-from typing import Optional
+from .exceptions import ComplaintWithIdNotFound, AccessDenied
+from .schemas import ComplaintCreate, ComplaintRead,ComplaintUpdate, ComplaintQueryModel
+from.models import Complaint
 
-from sqlmodel import select
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import and_
-
-from src.common import DatabaseError
-from src.complaints import ComplaintWithIdNotFound, AccessDenied, ComplaintCreate, Complaint, ComplaintRead, \
-    ComplaintUpdate, ComplaintQueryModel
+from src.complaints.repositories import ComplaintRepositories
+from ..users import UserService
 
 
 class ComplaintService:
-    def __init__(self, db: AsyncSession):
-        self.db = db
+    def __init__(self, complaint_repo: ComplaintRepositories,user_service: UserService):
+        self._complaint_repo = complaint_repo
+        self._user_service = user_service
 
-    async def create_complaint(self, complaint: ComplaintCreate, user_id: int) -> Optional[ComplaintRead]:
+    @staticmethod
+    def _ensure_user_access(complaint_user_id: int, user_id: int) -> None:
+        if complaint_user_id != user_id:
+            raise AccessDenied
+
+    async def create_complaint(self, complaint: ComplaintCreate, user_id: int) -> ComplaintRead | None:
         """
         Method that creates new complaint in DB
         :param complaint:
@@ -24,82 +26,53 @@ class ComplaintService:
             **complaint.model_dump(),
             user_id = user_id
         )
-
-        try:
-            self.db.add(complaint_in_db)
-            await self.db.commit()
-            await self.db.refresh(complaint_in_db)
-
-            return ComplaintRead(**complaint_in_db.model_dump())
-        except SQLAlchemyError:
-            await self.db.rollback()
-            raise DatabaseError('Error while adding new complaint')
+        created = await self._complaint_repo.create(complaint_in_db)
+        return ComplaintRead(**created.model_dump())
 
 
-    async def get_all(self, query_params: Optional[ComplaintQueryModel]) -> Optional[list[ComplaintRead]]:
-        try:
-            stmt = select(Complaint).where(and_(
-                Complaint.status == query_params.status,
-                Complaint.category == query_params.category
-            ))
-            result = await self.db.scalars(stmt)
-            return [ComplaintRead(**i.model_dump()) for i in result]
-
-        except SQLAlchemyError as e:
-            raise e
-
-
-    async def _get_by_id(self, complaint_id: int) -> Optional[Complaint]:
-        try:
-            complaint = await self.db.get(Complaint, complaint_id)
-            if not complaint:
-                raise ComplaintWithIdNotFound(complaint_id)
-
-        except SQLAlchemyError as e:
-            raise DatabaseError(f'Error while getting complaint with id {e}')
+    async def get_all(self, query_params: ComplaintQueryModel) -> list[ComplaintRead]:
+        complaints = await self._complaint_repo.get_all(query_params)
+        return [ComplaintRead(**complaint.model_dump()) for complaint in complaints]
 
 
     async def get_by_id(self, complaint_id: int) -> ComplaintRead:
-        complaint = await self._get_by_id(complaint_id)
+        complaint = await self._complaint_repo.get_by_id(complaint_id)
+
+        if not complaint:
+            raise ComplaintWithIdNotFound(complaint_id)
+
         return ComplaintRead(**complaint.model_dump())
 
 
     async def update_complaint(self, complaint_id: int, user_id: int, new_data: ComplaintUpdate) -> ComplaintRead:
-        complaint = await self._get_by_id(complaint_id)
+        complaint = await self._complaint_repo.get_by_id(complaint_id)
 
-        if user_id != complaint.user_id:
-            raise AccessDenied
+        if not complaint:
+            raise ComplaintWithIdNotFound(complaint_id)
 
-        for key, value in new_data.model_dump().items():
-            setattr(complaint, key, value)
+        self._ensure_user_access(complaint.user_id, user_id)
 
-        try:
-            await self.db.commit()
-            await self.db.refresh(complaint)
-            return ComplaintRead(**complaint.model_dump())
-        except SQLAlchemyError:
-            await self.db.rollback()
-            raise DatabaseError('database error while updating complaint')
-
+        updated = await self._complaint_repo.update(
+            complaint=complaint,
+            new_data=new_data,
+        )
+        return ComplaintRead(**updated.model_dump())
 
     async def delete_by_id(self, complaint_id: int, user_id: int) -> None:
-        complaint = await self._get_by_id(complaint_id)
+        complaint = await self._complaint_repo.get_by_id(complaint_id)
 
-        if complaint.user_id != user_id:
-            raise AccessDenied
+        if not complaint:
+            raise ComplaintWithIdNotFound(complaint_id)
 
-        try:
-            await self.db.delete(complaint)
-            await self.db.commit()
-        except SQLAlchemyError:
-            await self.db.rollback()
-            raise DatabaseError("Database error while deleting complaint")
+        self._ensure_user_access(complaint.user_id, user_id)
+
+        await self._complaint_repo.delete(complaint)
 
     async def get_complaints_by_user_id(self, user_id: int) -> list[ComplaintRead]:
-        try:
-            stmt = select(Complaint).where(Complaint.user_id == user_id)
-            result = await self.db.scalars(stmt)
-            complaints = result.all()
-            return [ComplaintRead(**c.model_dump()) for c in complaints]
-        except SQLAlchemyError:
-            raise DatabaseError('Error while fetching complaints for user')
+        await self._user_service.get_user_by_id(user_id)
+
+        complaints = await self._complaint_repo.get_by_user_id(user_id)
+
+        return [ComplaintRead(**complaint.model_dump()) for complaint in complaints]
+
+
