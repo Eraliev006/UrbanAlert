@@ -31,5 +31,7 @@ class ComplaintUpdate(SQLModel):
 
 class ComplaintQueryModel(SQLModel):
     category: Optional[str] = None
+    limit: int = 10
+    offset: int = 5
     status: Optional[ComplaintStatus] = ComplaintStatus.PENDING
 
