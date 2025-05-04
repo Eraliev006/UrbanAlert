@@ -1,8 +1,8 @@
 from sqlmodel import select, or_
 
-from src import User
+from .models import User
 from src.common import BaseRepository, db_exception_handler
-from src.users import UserUpdate
+from .schemas import UserUpdate
 
 
 class UserRepositories(BaseRepository):
@@ -52,14 +52,12 @@ class UserRepositories(BaseRepository):
 
     @db_exception_handler
     async def update(self, user: User, new_data: UserUpdate) -> User:
-        for key, value in new_data.model_dump().items():
-            if value is not None:
-                setattr(user, key, value)
+        updated_instance = await self.update_instance(
+            instance=user,
+            new_data=new_data
+        )
 
-        await self.db.commit()
-        await self.db.refresh(user)
-
-        return user
+        return updated_instance
 
     @db_exception_handler
     async def delete(self, user: User):
