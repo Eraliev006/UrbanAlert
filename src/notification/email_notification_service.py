@@ -2,25 +2,26 @@ from email.message import EmailMessage
 import aiosmtplib
 
 from src.core import settings
+from .notification_strategy import NotificationStrategy
 
 
-class EmailNotificationService:
+class EmailNotification(NotificationStrategy):
     def __init__(self):
         self.smtp_host = settings.smtp.smtp_host
         self.smtp_port = settings.smtp.smtp_port
         self.smtp_user = settings.smtp.smtp_user
         self.smtp_password = settings.smtp.smtp_password
 
-    async def send_otp(self, to_email: str, otp_code: str) -> bool:
-        message = EmailMessage()
-        message["From"] = self.smtp_user
-        message["To"] = to_email
-        message["Subject"] = f"Your One-Time Password — {otp_code}"
-        message.set_content(f"Hello!\n\nYour OTP code is: {otp_code}\n\nRegards.")
+    async def notify(self, recipient: str, subject: str, message: str) -> bool:
+        email = EmailMessage()
+        email["From"] = self.smtp_user
+        email["To"] = recipient
+        email["Subject"] = subject
+        email.set_content(message)
 
         try:
             await aiosmtplib.send(
-                message,
+                email,
                 hostname=self.smtp_host,
                 port=self.smtp_port,
                 start_tls=True,
@@ -29,6 +30,4 @@ class EmailNotificationService:
             )
             return True
         except aiosmtplib.SMTPException as e:
-            print(f"Failed to send email: {e}")
             return False
-
