@@ -1,15 +1,14 @@
 import datetime
 from datetime import timedelta, timezone
-from typing import Optional, Any
+from typing import Any
 
 import jwt
 from jwt import InvalidSignatureError, ExpiredSignatureError
 from src.core import settings
 from src.core.redis_client import RedisClient
-from .exceptions import InvalidTokenType, InvalidSignatureException, ExpiredTokenSignatureException, DecodeTokenError
+from .exceptions import InvalidTokenType, InvalidSignatureException, ExpiredTokenSignatureException, DecodeTokenError, RefreshTokenNotFound
 from src.tokens.token_type import TokenType
-from .. import User
-from ..users import UserRead
+from src.users import User, UserRead
 
 
 class TokenService:
@@ -19,8 +18,14 @@ class TokenService:
     async def save_refresh_token(self,user_id:int, token:str):
         await self.redis_client.set(f'refresh_token:{user_id}', token, ex=timedelta(days=30))
 
-    async def get_refresh_token(self, user_id: int) -> Optional[str]:
-        return await self.redis_client.get(f'refresh_token:{user_id}')
+    async def verify_refresh_token(self, user_id: int, provided_token: str) -> None:
+        stored_token = await self.redis_client.get(f'refresh_token:{user_id}')
+        if not stored_token:
+            raise RefreshTokenNotFound
+
+        if stored_token != provided_token:
+            raise InvalidSignatureException
+
 
     async def delete_refresh_token(self, user_id: int):
         await self.redis_client.delete(f'refresh_token:{user_id}')
