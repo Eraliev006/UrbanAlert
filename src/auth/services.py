@@ -98,7 +98,7 @@ class AuthService:
         payload = self._token_service.decode_token_with_token_type_checking(refresh_token, TokenType.refresh)
         user_id = int(payload['sub'])
 
-        await self._token_service.verify_refresh_token(user_id)
+        await self._token_service.verify_refresh_token(user_id, refresh_token)
         await self._token_service.delete_refresh_token(user_id)
 
         user: UserRead = await self._user_service.get_user_by_id(int(payload['sub']))
