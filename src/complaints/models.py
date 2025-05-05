@@ -7,7 +7,7 @@ from .schemas import ComplaintBase
 from .complaint_status import ComplaintStatus
 
 if TYPE_CHECKING:
-    from src import User
+    from src import User, Comment
 
 
 class Complaint(ComplaintBase, table=True):
@@ -21,5 +21,5 @@ class Complaint(ComplaintBase, table=True):
     updated_at: datetime.date = Field(default_factory=datetime.date.today)
 
     user: "User" = Relationship(back_populates='complaints')
-
+    comments: list["Comment"] = Relationship(back_populates='complaint')
 
