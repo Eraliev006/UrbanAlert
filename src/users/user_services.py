@@ -1,6 +1,6 @@
 from .models import User
 from .schemas import UserRead, UserCreate, UserUpdate
-from .exceptions import UserWithIdNotFound, EmailOrUsernameAlreadyExists
+from .exceptions import UserWithIdNotFound, EmailOrUsernameAlreadyExists, UserWithUsernameNotFound, UserWithEmailNotFound
 from .repositories import UserRepositories
 
 
@@ -67,3 +67,19 @@ class UserService:
 
         await self._user_repo.delete(user)
         return None
+
+    async def get_by_username(self, username: str) -> UserRead:
+        user = await self._user_repo.get_by_username(username)
+
+        if not user:
+            raise UserWithUsernameNotFound(username)
+
+        return UserRead(**user.model_dump())
+
+    async def get_by_email(self, email: str) -> UserRead:
+        user = await self._user_repo.get_by_email(email)
+
+        if not user:
+            raise UserWithEmailNotFound(email)
+
+        return UserRead(**user.model_dump())
