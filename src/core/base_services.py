@@ -1,5 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth import AuthService
+from src.comments import CommentRepositories
+from src.comments.services import CommentService
 from src.complaints import ComplaintService
 from src.complaints.repositories import ComplaintRepositories
 from src.notification import EmailNotification
@@ -18,6 +20,9 @@ class Services:
 
         self.complaint_repository = ComplaintRepositories(db)
         self.complaint_service = ComplaintService(self.complaint_repository, self.user_service)
+
+        self.comment_repository = CommentRepositories(db)
+        self.comment_service = CommentService(self.comment_repository, self.complaint_service)
 
         self.email_service = EmailNotification()
         self.otp_service = OTPService(self.email_service, redis_client)
