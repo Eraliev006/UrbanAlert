@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 
 class Comment(SQLModel, table=True):
     __tablename__ = 'comments'
+    __table_args__ = {"extend_existing": True}
 
     id: int | None = Field(primary_key=True, nullable=False, index=True)
     user_id: int = Field(foreign_key='user.id', ondelete='CASCADE', nullable=False)
