@@ -1,2 +1,3 @@
-from .schemas import EmailNotification
-from .email_notification_service import EmailNotificationService
+from .schemas import EmailNotificationSchema
+from .notification_strategy import NotificationStrategy
+from .email_notification import EmailNotification
