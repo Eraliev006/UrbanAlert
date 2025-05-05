@@ -8,10 +8,10 @@ from .notification_strategy import NotificationStrategy
 
 class EmailNotification(NotificationStrategy):
     def __init__(self):
-        self.smtp_host = settings.smtp.smtp_host
-        self.smtp_port = settings.smtp.smtp_port
-        self.smtp_user = settings.smtp.smtp_user
-        self.smtp_password = settings.smtp.smtp_password
+        self.smtp_host = settings.smtp.hostname
+        self.smtp_port = settings.smtp.port
+        self.smtp_user = settings.smtp.user_email
+        self.smtp_password = settings.smtp.password
 
     async def notify(self, recipient: str, subject: str, message: str) -> bool:
         email = EmailMessage()
