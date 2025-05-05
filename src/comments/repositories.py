@@ -28,3 +28,11 @@ class CommentRepositories(BaseRepository):
         await self.db.commit()
 
         return True
+
+
+    @db_exception_handler
+    async def get_by_id(self, comment_id: int) -> Comment:
+        stmt = select(Comment).where(Comment.id == comment_id)
+        comment = await self.db.scalar(stmt)
+
+        return comment
