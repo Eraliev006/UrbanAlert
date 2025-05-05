@@ -1,5 +1,3 @@
-import random
-
 from passlib.context import CryptContext
 
 def hash_password(password: bytes) -> str:
