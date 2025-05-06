@@ -19,13 +19,24 @@ class ComplaintRepositories(BaseRepository):
 
     @db_exception_handler
     async def get_all(self, query_param: ComplaintQueryModel) -> list[Complaint]:
-        stmt = select(Complaint).where(and_(
-            Complaint.status == query_param.status,
-            Complaint.category == query_param.category
-        )).limit(query_param.limit).offset(query_param.offset)
-        complaints = await self.db.scalars(stmt)
+        filters = []
 
-        return list(complaints)
+        if query_param.status:
+            filters.append(Complaint.status == query_param.status)
+
+        if query_param.category:
+            filters.append(Complaint.category == query_param.category)
+
+        stmt = select(Complaint)
+
+        if filters:
+            stmt = stmt.where(and_(*filters))
+
+        stmt = stmt.limit(query_param.limit).offset(query_param.offset)
+
+        results = await self.db.scalars(stmt)
+        return list(results)
+
 
     @db_exception_handler
     async def get_by_id(self, complaint_id: int) -> Complaint:
