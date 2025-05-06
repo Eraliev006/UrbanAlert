@@ -24,6 +24,10 @@ async def get_all_complaints_route(
 ):
     return await complaint_service.get_all(query_params=query)
 
+@router.get('/statuses')
+async def get_complaint_statuses():
+    return [status.value for status in ComplaintStatus]
+
 @router.post('/')
 async def create_complaints(complaint_service: COMPLAINT_SERVICE_DEP, complaint:ComplaintCreate, current_user: CURRENT_USER_DEP):
     return await complaint_service.create_complaint(
