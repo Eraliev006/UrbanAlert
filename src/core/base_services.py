@@ -30,5 +30,6 @@ class Services:
         self.auth_service = AuthService(
             user_service=self.user_service,
             token_service=self.token_service,
-            otp_service=self.otp_service
+            otp_service=self.otp_service,
+            user_repo=self.user_repository
         )
