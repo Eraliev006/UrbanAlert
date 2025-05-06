@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from starlette import status
 
 from src.core.redis_client import RedisClient
-from src.notification import NotificationService
+from src.notification import NotificationService, EmailNotification
 
 
 class OTPService:
@@ -22,6 +22,7 @@ class OTPService:
         subject = "Your One-Time Password"
         body = f"Hello!\n\nYour OTP code is: {otp_code}\n\nRegards."
 
+        self.notification_service.set_strategy(EmailNotification())
         success = await self.notification_service.send_notification(email, subject, body)
         if success:
             await self.save_otp(email, otp_code)
