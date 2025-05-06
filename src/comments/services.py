@@ -21,8 +21,7 @@ class CommentService:
 
         comment = Comment(
             user_id=user_id,
-            complaint_id=comment_data.complaint_id,
-            content=comment_data.content
+            **comment_data.model_dump()
         )
         return await self._comment_repo.create(comment)
 
