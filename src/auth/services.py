@@ -11,6 +11,8 @@ from src.users.user_services import UserService
 from src.users.exceptions import UserNotVerifyEmail, UserAlreadyVerifiedEmail
 
 from src.otp import OTPService
+from src.users.models import User
+from src.users import UserRepositories
 
 
 class AuthService:
@@ -19,12 +21,14 @@ class AuthService:
             user_service: UserService,
             token_service: TokenService,
             otp_service: OTPService,
+            user_repo: UserRepositories
     ):
         self._token_service = token_service
         self._user_service = user_service
         self._otp_service = otp_service
+        self._user_repo = user_repo
 
-    async def _generate_and_save_tokens(self, user: UserRead) -> LoginUserOutput:
+    async def _generate_and_save_tokens(self, user: User | UserRead) -> LoginUserOutput:
         """
         Helper function to generate access and refresh tokens, then save the refresh token.
         :param user: The user object for which to generate tokens.
@@ -69,7 +73,7 @@ class AuthService:
         :param form_data: OAuth2PasswordRequestForm instance with username and password.
         :return: LoginUserOutput containing access and refresh tokens.
         """
-        exists_user = await self._user_service.get_by_username(form_data.username)
+        exists_user = await self._user_repo.get_by_username(form_data.username)
 
         if not exists_user.is_verified:
             raise UserNotVerifyEmail

@@ -1,6 +1,6 @@
 from .exceptions import ComplaintWithIdNotFound, AccessDenied
 from .schemas import ComplaintCreate, ComplaintRead,ComplaintUpdate, ComplaintQueryModel
-from.models import Complaint
+from src.complaints import Complaint
 
 from src.complaints.repositories import ComplaintRepositories
 from ..users import UserService

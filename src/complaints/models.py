@@ -7,7 +7,8 @@ from .schemas import ComplaintBase
 from .complaint_status import ComplaintStatus
 
 if TYPE_CHECKING:
-    from src import User, Comment
+    from src.users.models import User
+    from src.comments import Comment
 
 
 class Complaint(ComplaintBase, table=True):

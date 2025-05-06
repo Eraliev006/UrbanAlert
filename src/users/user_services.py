@@ -1,4 +1,4 @@
-from .models import User
+from src.users.models import User
 from .schemas import UserRead, UserCreate, UserUpdate
 from .exceptions import UserWithIdNotFound, EmailOrUsernameAlreadyExists, UserWithUsernameNotFound, UserWithEmailNotFound
 from .repositories import UserRepositories

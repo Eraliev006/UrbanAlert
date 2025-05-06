@@ -3,7 +3,8 @@ from typing import TYPE_CHECKING, Optional
 from sqlmodel import SQLModel, Field, Relationship
 
 if TYPE_CHECKING:
-    from src import User, Complaint
+    from src.users.models import User
+    from src import Complaint
 
 
 class Comment(SQLModel, table=True):
@@ -15,5 +16,5 @@ class Comment(SQLModel, table=True):
     complaint_id: int = Field(foreign_key='complaint.id', ondelete='CASCADE', nullable=False)
     content:str = Field(nullable=False)
 
-    user: Optional["User"] = Relationship(back_populates="comments")
+    user: Optional["User"] = Relationship()
     complaint: "Complaint" = Relationship(back_populates="comments")

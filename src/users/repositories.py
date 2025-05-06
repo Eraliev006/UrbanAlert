@@ -1,6 +1,6 @@
 from sqlmodel import select, or_
 
-from .models import User
+from src.users.models import User
 from src.common import BaseRepository, db_exception_handler
 from .schemas import UserUpdate
 
@@ -21,7 +21,6 @@ class UserRepositories(BaseRepository):
 
         return list(users.all())
 
-    @db_exception_handler
     async def get_by_username(self, username: str) -> User | None:
         stmt = select(User).where(User.username == username)
         user = await self.db.scalar(stmt)

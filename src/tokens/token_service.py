@@ -8,7 +8,8 @@ from src.core import settings
 from src.core.redis_client import RedisClient
 from .exceptions import InvalidTokenType, InvalidSignatureException, ExpiredTokenSignatureException, DecodeTokenError, RefreshTokenNotFound
 from src.tokens.token_type import TokenType
-from src.users import User, UserRead
+from src.users.models import User
+from src.users import UserRead
 
 
 class TokenService:

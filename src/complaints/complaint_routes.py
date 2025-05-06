@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 
+from src import ComplaintStatus
 from src.complaints import ComplaintService, ComplaintUpdate, ComplaintCreate, ComplaintQueryModel
 from src.core import get_current_user
 from src.core.dependencies import get_complaint_service

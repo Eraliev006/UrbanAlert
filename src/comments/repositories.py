@@ -1,7 +1,7 @@
 from sqlmodel import select
 
 from src.common import BaseRepository, db_exception_handler
-from .models import Comment
+from src.comments.models import Comment
 
 
 class CommentRepositories(BaseRepository):
