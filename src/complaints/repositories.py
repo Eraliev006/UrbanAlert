@@ -1,3 +1,4 @@
+from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 from sqlmodel import and_
@@ -31,6 +32,16 @@ class ComplaintRepositories(BaseRepository):
         stmt = select(Complaint).where(Complaint.id == complaint_id)
         complaint = await self.db.scalar(stmt)
 
+        return complaint
+
+    async def get_by_id_with_comments(self, complaint_id: int) -> Complaint:
+        stmt = (
+            select(Complaint)
+            .where(Complaint.id == complaint_id)
+            .options(selectinload(Complaint.comments))
+        )
+        result = await self.db.execute(stmt)
+        complaint = result.scalars().first()
         return complaint
 
     @db_exception_handler
