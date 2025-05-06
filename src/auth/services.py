@@ -12,7 +12,7 @@ from src.users.exceptions import UserNotVerifyEmail, UserAlreadyVerifiedEmail
 
 from src.otp import OTPService
 from src.users.models import User
-from src.users import UserRepositories
+from src.users import UserRepositories, UserWithUsernameNotFound, UserWithEmailNotFound
 
 
 class AuthService:
@@ -62,18 +62,16 @@ class AuthService:
         return created
 
     async def login_user(self, form_data: OAuth2PasswordRequestForm) -> LoginUserOutput:
-        """        if not exists_user:
-            raise UserWithUsernameNotFound(form_data.username)
-
-        if not exists_user.is_verified:
-            raise UserNotVerifyEmail
-
+        """
         Logs in the user and returns JWT tokens for authentication.
 
         :param form_data: OAuth2PasswordRequestForm instance with username and password.
         :return: LoginUserOutput containing access and refresh tokens.
         """
         exists_user = await self._user_repo.get_by_username(form_data.username)
+
+        if not exists_user:
+            raise UserWithUsernameNotFound(username=form_data.username)
 
         if not exists_user.is_verified:
             raise UserNotVerifyEmail
@@ -87,16 +85,22 @@ class AuthService:
         return await self._generate_and_save_tokens(exists_user)
 
 
-    async def verify_user_by_otp_code(self, verify_data: VerifyEmailSchema) -> bool:
-        user = await self._user_service.get_by_email(str(verify_data.email_user))
+    async def verify_user_by_otp_code(self, verify_data: VerifyEmailSchema) -> UserRead:
+        user = await self._user_repo.get_by_email(str(verify_data.email_user))
+
+        if not user:
+            raise UserWithEmailNotFound(str(user.email))
 
         if user.is_verified:
             raise UserAlreadyVerifiedEmail(str(user.email))
 
-        return await self._otp_service.verify_otp(
+        await self._otp_service.verify_otp(
             email=str(user.email),
             code=verify_data.otp_code
         )
+        verified_user = await self._user_repo.set_verified(user,verified=True)
+        return UserRead(**verified_user.model_dump())
+
 
     async def refresh_token(self, refresh_token: str) -> LoginUserOutput:
         payload = self._token_service.decode_token_with_token_type_checking(refresh_token, TokenType.refresh)
