@@ -3,7 +3,9 @@ from src.comments.repositories import CommentRepositories
 from src.comments.schemas import CommentCreate
 from src.complaints import ComplaintService
 from .exceptions import CommentNotFound
-from ..notification import NotificationService
+from src.notification import NotificationService
+from src.notification.websocket_notification import WebSocketNotification
+from src.websocket import manager
 
 
 class CommentService:
@@ -25,6 +27,7 @@ class CommentService:
             user_id=user_id,
             **comment_data.model_dump()
         )
+        self._notification_service.set_strategy(WebSocketNotification(connection_manager=manager))
         await self._notification_service.send_notification(
             recipient=str(user_id),
             subject=f'New comment {comment.complaint.complaint_text}',
