@@ -1,3 +1,3 @@
-from .users import User
-from .comments import Comment
-from .complaints import ComplaintStatus, Complaint
+from src.users.models import User
+from src.complaints.models import ComplaintStatus, Complaint
+from src.comments.models import Comment

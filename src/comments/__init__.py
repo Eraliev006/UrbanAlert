@@ -1,2 +1,2 @@
-from .models import Comment
+from src.comments.models import Comment
 from .repositories import CommentRepositories
