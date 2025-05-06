@@ -1,7 +1,7 @@
 import enum
 
 
-class ComplaintStatus(enum.Enum):
+class ComplaintStatus(str, enum.Enum):
     PENDING = "pending"
     IN_REVIEW = "in_review"
     APPROVED = "approved"
