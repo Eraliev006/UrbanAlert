@@ -1,9 +1,10 @@
 from .exceptions import ComplaintWithIdNotFound, AccessDenied
-from .schemas import ComplaintCreate, ComplaintRead,ComplaintUpdate, ComplaintQueryModel
+from .schemas import ComplaintCreate, ComplaintRead, ComplaintUpdate, ComplaintQueryModel, ComplaintReadDetailsSchemas
 from src.complaints import Complaint
 
 from src.complaints.repositories import ComplaintRepositories
-from ..users import UserService
+from src.comments.schemas import CommentRead
+from src.users import UserService
 
 
 class ComplaintService:
@@ -35,13 +36,15 @@ class ComplaintService:
         return [ComplaintRead(**complaint.model_dump()) for complaint in complaints]
 
 
-    async def get_by_id(self, complaint_id: int) -> ComplaintRead:
-        complaint = await self._complaint_repo.get_by_id(complaint_id)
+    async def get_by_id(self, complaint_id: int) -> ComplaintReadDetailsSchemas:
+        complaint = await self._complaint_repo.get_by_id_with_comments(complaint_id)
 
         if not complaint:
             raise ComplaintWithIdNotFound(complaint_id)
 
-        return ComplaintRead(**complaint.model_dump())
+        return ComplaintReadDetailsSchemas(**complaint.model_dump(),comments=[CommentRead(**c.model_dump()) for c in complaint.comments]
+
+)
 
 
     async def update_complaint(self, complaint_id: int, user_id: int, new_data: ComplaintUpdate) -> ComplaintRead:
