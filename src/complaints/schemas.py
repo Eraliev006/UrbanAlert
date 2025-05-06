@@ -3,6 +3,7 @@ from typing import Optional
 
 from sqlmodel import SQLModel, Field
 from .complaint_status import ComplaintStatus
+from src.comments.schemas import CommentRead
 
 
 class ComplaintBase(SQLModel):
@@ -24,6 +25,8 @@ class ComplaintRead(ComplaintBase):
     created_at: datetime.date
     updated_at: datetime.date
 
+class ComplaintReadDetailsSchemas(ComplaintRead):
+    comments: list[CommentRead] = []
 
 class ComplaintUpdate(SQLModel):
     status: Optional[ComplaintStatus] = ComplaintStatus.PENDING
