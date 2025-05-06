@@ -59,7 +59,7 @@ async def login_user_router(auth_service: AUTH_SERVICE_DEP, form_data: Annotated
 @router.post(
     '/verify-code',
     status_code=status.HTTP_200_OK,
-    response_model=dict[str, str]
+    response_model=UserRead
 )
 async def verify_code_route(
         verify_data: VerifyEmailSchema,
