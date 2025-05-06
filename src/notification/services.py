@@ -2,7 +2,7 @@ from src.notification import NotificationStrategy
 
 
 class NotificationService:
-    def __init__(self, strategy: NotificationStrategy):
+    def __init__(self, strategy: NotificationStrategy = None):
         self._strategy = strategy
 
     def set_strategy(self, strategy: NotificationStrategy):
