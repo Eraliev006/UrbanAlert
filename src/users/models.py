@@ -19,7 +19,13 @@ class User(BaseUser, table = True):
     is_verified: bool = Field(default=False, nullable=False)
     created_at: datetime.date = Field(default_factory=datetime.date.today)
 
-    complaints: list["Complaint"] = Relationship(back_populates='user')
+    complaints: list["Complaint"] = Relationship(
+        back_populates='user',
+        sa_relationship_kwargs={
+            "cascade": "all, delete-orphan",
+            "passive_deletes": True
+        }
+    )
 
 
 
