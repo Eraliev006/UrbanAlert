@@ -3,6 +3,7 @@ from src.comments.repositories import CommentRepositories
 from src.comments.schemas import CommentCreate
 from src.complaints import ComplaintService
 from .exceptions import CommentNotFound
+from ..notification import NotificationService
 
 
 class CommentService:
@@ -10,10 +11,11 @@ class CommentService:
         self,
         comment_repo: CommentRepositories,
         complaint_service: ComplaintService,
+        notification_service: NotificationService
     ):
         self._comment_repo = comment_repo
         self._complaint_service = complaint_service
-
+        self._notification_service = notification_service
 
 
     async def create_comment(self, comment_data: CommentCreate, user_id: int) -> Comment:
@@ -22,6 +24,11 @@ class CommentService:
         comment = Comment(
             user_id=user_id,
             **comment_data.model_dump()
+        )
+        await self._notification_service.send_notification(
+            recipient=str(user_id),
+            subject=f'New comment {comment.complaint.complaint_text}',
+            message=comment.content
         )
         return await self._comment_repo.create(comment)
 
