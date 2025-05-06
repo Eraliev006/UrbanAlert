@@ -14,7 +14,7 @@ class ComplaintBase(SQLModel):
     description:str = Field(nullable=True)
 
 class ComplaintCreate(ComplaintBase):
-    status: Optional[ComplaintStatus] = Field(default=ComplaintStatus.PENDING)
+    status: ComplaintStatus = Field(default=ComplaintStatus.PENDING)
 
 
 class ComplaintRead(ComplaintBase):
