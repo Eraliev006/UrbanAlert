@@ -20,4 +20,4 @@ __pycache__/
 # Alembic
 alembic/versions/*.pyc
 
-/static/
+/src/static/
