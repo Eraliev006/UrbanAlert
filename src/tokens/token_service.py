@@ -99,7 +99,7 @@ class TokenService:
             token_type: TokenType,
             algorithm: str = settings.jwt.algorithm,
             secret_key=settings.jwt.secret_key
-    ):
+    ) -> dict[str, Any]:
         try:
             decoded = jwt.decode(
                 jwt=token,
