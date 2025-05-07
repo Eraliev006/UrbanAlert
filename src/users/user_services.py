@@ -1,12 +1,16 @@
+from fastapi import UploadFile
+
 from src.users.models import User
 from .schemas import UserRead, UserCreate, UserUpdate
 from .exceptions import UserWithIdNotFound, EmailOrUsernameAlreadyExists, UserWithUsernameNotFound, UserWithEmailNotFound
 from .repositories import UserRepositories
+from src.images import ImageService
 
 
 class UserService:
-    def __init__(self, user_repo: UserRepositories):
+    def __init__(self, user_repo: UserRepositories, image_service: ImageService):
         self._user_repo = user_repo
+        self._image_service = image_service
 
     async def _check_if_user_exists(
             self,
@@ -83,3 +87,18 @@ class UserService:
             raise UserWithEmailNotFound(email)
 
         return UserRead(**user.model_dump())
+
+    async def save_user_avatar_image(self, file: UploadFile, user_id: int) -> UserRead:
+        await self.get_user_by_id(user_id)
+
+        avatar_url = await self._image_service.save_image(file, user_id)
+
+        updated_user = await self._user_repo.save_user_avatar(
+            avatar_url=avatar_url,
+            user_id=user_id
+        )
+
+        return UserRead(**updated_user.model_dump())
+
+
+
