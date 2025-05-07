@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile
 from starlette import status
 
 from src.common import ErrorResponse
@@ -22,6 +22,10 @@ common_responses = {
 
 CURRENT_USER_DEP = Annotated[UserRead, Depends(get_current_user)]
 USER_SERVICE_DEP = Annotated[UserService, Depends(get_user_service)]
+
+@router.post('/upload-avatar-image')
+async def upload_avatar(file: UploadFile, user_service: USER_SERVICE_DEP, current_user: CURRENT_USER_DEP):
+    return await user_service.save_user_avatar_image(file, current_user.id)
 
 @router.get(
     '/',
