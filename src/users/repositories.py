@@ -72,3 +72,11 @@ class UserRepositories(BaseRepository):
         await self.db.refresh(user)
 
         return user
+
+    @db_exception_handler
+    async def save_user_avatar(self, avatar_url: str, user_id: int) -> User:
+        user = await self.get_by_id(user_id)
+        await self.db.commit()
+        await self.db.refresh(user)
+
+        return user
