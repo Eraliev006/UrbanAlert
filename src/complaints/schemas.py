@@ -9,7 +9,6 @@ from src.comments.schemas import CommentRead
 class ComplaintBase(SQLModel):
     complaint_text: str
     category: Optional[str] = None
-    image_url: str = Field(nullable=True)
     latitude: float = Field(nullable=False)
     longitude: float = Field(nullable=False)
     description:str = Field(nullable=True)
@@ -22,6 +21,7 @@ class ComplaintRead(ComplaintBase):
     id: int
     user_id: int
     status: ComplaintStatus
+    image_url: str = Field(nullable=True)
     created_at: datetime.date
     updated_at: datetime.date
 
