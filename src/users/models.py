@@ -17,6 +17,7 @@ class User(BaseUser, table = True):
     id: Optional[int] = Field(primary_key=True, nullable=False, index=True)
     password: str = Field(nullable=False)
     is_verified: bool = Field(default=False, nullable=False)
+    avatar_url: Optional[str] = Field(nullable=True)
     created_at: datetime.date = Field(default_factory=datetime.date.today)
 
     complaints: list["Complaint"] = Relationship(
