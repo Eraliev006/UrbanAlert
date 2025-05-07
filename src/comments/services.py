@@ -21,7 +21,7 @@ class CommentService:
 
 
     async def create_comment(self, comment_data: CommentCreate, user_id: int) -> Comment:
-        await self._complaint_service.get_by_id(comment_data.complaint_id)
+        complaint = await self._complaint_service.get_by_id(comment_data.complaint_id)
 
         comment = Comment(
             user_id=user_id,
@@ -29,8 +29,8 @@ class CommentService:
         )
         self._notification_service.set_strategy(WebSocketNotification(connection_manager=manager))
         await self._notification_service.send_notification(
-            recipient=str(user_id),
-            subject=f'New comment {comment.complaint.complaint_text}',
+            recipient=str(complaint.user_id),
+            subject=f'New comment {complaint.complaint_text}',
             message=comment.content
         )
         return await self._comment_repo.create(comment)
