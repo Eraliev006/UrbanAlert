@@ -18,6 +18,7 @@ class Complaint(ComplaintBase, table=True):
 
     id: Optional[int] = Field(primary_key=True, nullable=False, index=True)
     user_id: int = Field(sa_column=Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False))
+    image_url: str = Field(nullable=True)
     status: ComplaintStatus = Field(default=ComplaintStatus.PENDING, nullable=False)
     created_at: datetime.date = Field(default_factory=datetime.date.today)
     updated_at: datetime.date = Field(default_factory=datetime.date.today)
