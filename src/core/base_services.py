@@ -4,6 +4,7 @@ from src.comments import CommentRepositories
 from src.comments.services import CommentService
 from src.complaints import ComplaintService
 from src.complaints.repositories import ComplaintRepositories
+from src.images import ImageService
 from src.notification import NotificationService
 from src.otp import OTPService
 from src.tokens.token_service import TokenService
@@ -16,6 +17,7 @@ class Services:
         self.token_service = TokenService(redis_client)
         self.notification_service = NotificationService()
         self.otp_service = OTPService(self.notification_service, redis_client)
+        self.image_service = ImageService()
 
         self.user_repository = UserRepositories(db)
         self.user_service = UserService(user_repo=self.user_repository)
