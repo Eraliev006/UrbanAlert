@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI
+from starlette.staticfiles import StaticFiles
 
 from src.core import settings, redis_client, database_helper
 from auth.routes import router as auth_router
@@ -20,6 +21,8 @@ async def lifespan(app: FastAPI):
     await database_helper.dispose()
 
 app = FastAPI(lifespan=lifespan)
+
+app.mount('/static', StaticFiles(directory="static"), name='static')
 
 app.include_router(auth_router)
 app.include_router(user_router)
