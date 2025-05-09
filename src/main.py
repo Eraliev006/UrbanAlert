@@ -1,8 +1,9 @@
 from contextlib import asynccontextmanager
-
+import logging
 from fastapi import FastAPI
 from starlette.staticfiles import StaticFiles
 
+from src import register_middleware
 from src.core import redis_client, database_helper
 from src.auth.routes import router as auth_router
 from src.websocket.routes import router as websocket_router
@@ -29,4 +30,7 @@ app.include_router(complaint_router)
 app.include_router(comment_router)
 app.include_router(websocket_router)
 
+register_middleware(app)
 
+logger = logging.getLogger('fixkg.main')
+logger.error('HELLo')
