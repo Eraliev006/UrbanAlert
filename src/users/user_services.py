@@ -91,7 +91,7 @@ class UserService:
     async def save_user_avatar_image(self, file: UploadFile, user_id: int) -> UserRead:
         await self.get_user_by_id(user_id)
 
-        avatar_url = await self._image_service.save_image(file, user_id)
+        avatar_url = await self._image_service.save_user_avatar_image(file, user_id)
 
         updated_user = await self._user_repo.save_user_avatar(
             avatar_url=avatar_url,
