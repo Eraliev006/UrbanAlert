@@ -20,10 +20,10 @@ class Services:
         self.image_service = ImageService()
 
         self.user_repository = UserRepositories(db)
-        self.user_service = UserService(user_repo=self.user_repository)
+        self.user_service = UserService(image_service=self.image_service, user_repo=self.user_repository)
 
         self.complaint_repository = ComplaintRepositories(db)
-        self.complaint_service = ComplaintService(self.complaint_repository, self.user_service)
+        self.complaint_service = ComplaintService(self.complaint_repository, self.user_service, self.image_service)
 
         self.comment_repository = CommentRepositories(db)
         self.comment_service = CommentService(self.comment_repository, self.complaint_service, self.notification_service)
