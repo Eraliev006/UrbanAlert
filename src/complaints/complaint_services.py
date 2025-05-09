@@ -1,3 +1,5 @@
+from fastapi import UploadFile
+
 from .exceptions import ComplaintWithIdNotFound, AccessDenied
 from .schemas import ComplaintCreate, ComplaintRead, ComplaintUpdate, ComplaintQueryModel, ComplaintReadDetailsSchemas
 from src.complaints import Complaint
@@ -5,12 +7,14 @@ from src.complaints import Complaint
 from src.complaints.repositories import ComplaintRepositories
 from src.comments.schemas import CommentRead
 from src.users import UserService
+from src.images import ImageService
 
 
 class ComplaintService:
-    def __init__(self, complaint_repo: ComplaintRepositories,user_service: UserService):
+    def __init__(self, complaint_repo: ComplaintRepositories,user_service: UserService, image_service: ImageService):
         self._complaint_repo = complaint_repo
         self._user_service = user_service
+        self._image_service = image_service
 
     @staticmethod
     def _ensure_user_access(complaint_user_id: int, user_id: int) -> None:
@@ -78,4 +82,14 @@ class ComplaintService:
 
         return [ComplaintRead(**complaint.model_dump()) for complaint in complaints]
 
+    async def upload_complaint_image(self, file: UploadFile, complaint_id: int) -> ComplaintRead:
+        await self.get_by_id(complaint_id)
 
+        image_url = await self._image_service.save_complaint_image(file, complaint_id)
+
+        updated_complaint = await self._complaint_repo.save_complaint_image(
+            image_url=image_url,
+            complaint_id=complaint_id
+        )
+
+        return ComplaintRead(**updated_complaint.model_dump())
