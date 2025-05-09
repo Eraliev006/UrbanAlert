@@ -43,8 +43,10 @@ class Settings(BaseSettings):
     database: Database
     smtp: SMTPSettings
     redis: RedisSettings
-    server_host: str
-    server_port: int
+    ALLOW_ORIGINS: list[str] = [
+    ]
+    ALLOW_METHODS: list[str] = ['*']
+    ALLOW_HEADERS: list[str] = ['*']
 
 
 settings = Settings()
