@@ -8,9 +8,7 @@ from .models import Complaint
 from src.common import BaseRepository, db_exception_handler
 
 
-# Настройка логгера
 logger = logging.getLogger('fixkg.complaint_repository')
-logger.setLevel(logging.DEBUG)
 
 class ComplaintRepositories(BaseRepository):
     @db_exception_handler
