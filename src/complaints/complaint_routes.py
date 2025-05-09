@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, UploadFile
 
 from src import ComplaintStatus
 from src.complaints import ComplaintService, ComplaintUpdate, ComplaintCreate, ComplaintQueryModel
@@ -28,6 +28,10 @@ async def get_all_complaints_route(
 @router.get('/statuses')
 async def get_complaint_statuses():
     return [status.value for status in ComplaintStatus]
+
+@router.post('/{complaint_id}/upload_images', dependencies=[Depends(get_current_user)])
+async def upload_complaint_image(complaint_id: int, file: UploadFile, complaint_service: COMPLAINT_SERVICE_DEP):
+    return await complaint_service.upload_complaint_image(file, complaint_id)
 
 @router.post('/')
 async def create_complaints(complaint_service: COMPLAINT_SERVICE_DEP, complaint:ComplaintCreate, current_user: CURRENT_USER_DEP):
