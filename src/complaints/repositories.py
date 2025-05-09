@@ -77,3 +77,12 @@ class ComplaintRepositories(BaseRepository):
         complaints = await self.db.scalars(stmt)
 
         return list(complaints)
+
+    @db_exception_handler
+    async def save_complaint_image(self, complaint_id: int, image_url: str):
+        complaint = await self.get_by_id(complaint_id)
+        complaint.image_url = image_url
+        await self.db.commit()
+        await self.db.refresh(complaint)
+
+        return complaint
