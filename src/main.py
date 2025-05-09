@@ -31,6 +31,4 @@ app.include_router(comment_router)
 app.include_router(websocket_router)
 
 register_middleware(app)
-
-logger = logging.getLogger('fixkg.main')
-logger.error('HELLo')
+register_logger()
