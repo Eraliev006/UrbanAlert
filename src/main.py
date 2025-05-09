@@ -1,8 +1,8 @@
 from contextlib import asynccontextmanager
-import logging
 from fastapi import FastAPI
 from starlette.staticfiles import StaticFiles
 
+from logger import register_logger
 from src import register_middleware
 from src.core import redis_client, database_helper
 from src.auth.routes import router as auth_router
