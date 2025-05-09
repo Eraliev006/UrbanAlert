@@ -1,16 +1,24 @@
-import uuid
 from pathlib import Path
+from fastapi import HTTPException, UploadFile, status
+import os
 
-from fastapi import HTTPException
-from starlette import status
-from starlette.datastructures import UploadFile
+USER_AVATAR_DIR = Path("static/avatars")
+COMPLAINT_IMAGE_DIR = Path("static/complaints")
 
-AVATAR_DIR = Path("static/avatars")
-AVATAR_DIR.mkdir(parents=True, exist_ok=True)
+USER_AVATAR_DIR.mkdir(parents=True, exist_ok=True)
+COMPLAINT_IMAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 class ImageService:
     @staticmethod
-    async def save_image(file: UploadFile, user_id: int) -> str:
+    async def save_user_avatar_image(file: UploadFile, user_id: int) -> str:
+        return await ImageService._save_image(file, f"user_{user_id}", USER_AVATAR_DIR)
+
+    @staticmethod
+    async def save_complaint_image(file: UploadFile, complaint_id: int) -> str:
+        return await ImageService._save_image(file, f"complaint_{complaint_id}", COMPLAINT_IMAGE_DIR)
+
+    @staticmethod
+    async def _save_image(file: UploadFile, prefix: str, directory: Path) -> str:
         if not file.content_type.startswith('image/'):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -18,16 +26,22 @@ class ImageService:
             )
 
         ext = Path(file.filename).suffix
-        filename = f"user_{user_id}_{uuid.uuid4()}{ext}"
-        file_path = AVATAR_DIR / filename
+        filename = f"{prefix}{ext}"
+        file_path = directory / filename
 
-        with open(file_path, "wb") as buffer:
+        if file_path.exists():
+            os.remove(file_path)
+
+        try:
             content = await file.read()
-            buffer.write(content)
+            with open(file_path, "wb") as buffer:
+                buffer.write(content)
 
-        avatar_url = f"/static/avatars/{filename}"
-        return avatar_url
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"An error occurred while saving the image: {str(e)}"
+            )
 
-    @staticmethod
-    def get_image_path(filename: str) -> Path:
-        return AVATAR_DIR / filename
+        image_url = f"/static/{directory.name}/{filename}"
+        return image_url
