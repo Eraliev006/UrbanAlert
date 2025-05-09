@@ -89,7 +89,7 @@ class AuthService:
         user = await self._user_repo.get_by_email(str(verify_data.email_user))
 
         if not user:
-            raise UserWithEmailNotFound(str(user.email))
+            raise UserWithEmailNotFound(str(verify_data.email_user))
 
         if user.is_verified:
             raise UserAlreadyVerifiedEmail(str(user.email))
