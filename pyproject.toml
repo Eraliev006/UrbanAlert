@@ -30,6 +30,10 @@ package-mode = false
 
 packages = [{include='src', from='fixkg'}]
 
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.5"
 pytest-asyncio = "^0.26.0"
