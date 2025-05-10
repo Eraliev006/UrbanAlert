@@ -7,7 +7,6 @@ from starlette import status
 from src.core.redis_client import RedisClient
 from src.notification import NotificationService, EmailNotification
 
-# Логгер для OTPService
 logger = logging.getLogger('fixkg.otp_service')
 
 
@@ -21,25 +20,21 @@ class OTPService:
     @staticmethod
     def _generate_otp_code(length: int = 6) -> str:
         otp = ''.join([str(random.randint(0, 9)) for _ in range(length)])
-        logger.debug(f'Generated OTP code: {otp}')
+        logger.debug('Generated OTP code: %s', otp)
         return otp
 
-    async def send_and_save_otp(self, email: str) -> bool:
+    async def send_and_save_otp(self, email: str) -> None:
         otp_code = self._generate_otp_code()
         subject = "Your One-Time Password"
         body = f"Hello!\n\nYour OTP code is: {otp_code}\n\nRegards."
 
         logger.info(f'Sending OTP to email: {email}')
         self.notification_service.set_strategy(EmailNotification())
-        success = await self.notification_service.send_notification(email, subject, body)
+        await self.notification_service.send_notification(email, subject, body)
 
-        if success:
-            logger.info(f'Successfully sent OTP to {email}')
-            await self.save_otp(email, otp_code)
-        else:
-            logger.error(f'Failed to send OTP to {email}')
+        logger.info('Successfully sent OTP to %s', email)
+        await self.save_otp(email, otp_code)
 
-        return success
 
     async def save_otp(self, email: str, code: str) -> None:
         logger.debug(f'Saving OTP code for {email} in Redis')
@@ -52,7 +47,7 @@ class OTPService:
 
     async def verify_otp(self, email: str, code: str) -> bool:
         key = f'otp:{email}'
-        logger.debug(f'Verifying OTP for {email}')
+        logger.debug('Verifying OTP for %s', email)
         stored_code = await self.redis_client.get(key=key)
 
         if not stored_code:
