@@ -5,7 +5,6 @@ import pytest
 from src import User
 from src.common import DatabaseError
 from src.users import UserRepositories
-from test.conftest import user_repository
 
 
 class TestUserRepository:
