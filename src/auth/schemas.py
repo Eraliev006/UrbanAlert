@@ -7,5 +7,5 @@ class LoginUserOutput(SQLModel):
     token_type: str
 
 class VerifyEmailSchema(SQLModel):
-    email_user: EmailStr
+    email: EmailStr
     otp_code: str
