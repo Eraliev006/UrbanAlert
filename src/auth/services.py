@@ -81,20 +81,20 @@ class AuthService:
         return await self._generate_and_save_tokens(exists_user)
 
     async def verify_user_by_otp_code(self, verify_data: VerifyEmailSchema) -> UserRead:
-        logger.debug('Verifying user with email=%s by OTP', verify_data.email_user)
+        logger.debug('Verifying user with email=%s by OTP', verify_data.email)
 
-        user = await self._user_repo.get_by_email(str(verify_data.email_user))
+        user = await self._user_repo.get_by_email(str(verify_data.email))
 
         if not user:
-            logger.error('User with email=%s not found', verify_data.email_user)
-            raise UserWithEmailNotFound(str(verify_data.email_user))
+            logger.error('User with email=%s not found', verify_data.email)
+            raise UserWithEmailNotFound(str(verify_data.email))
 
         if user.is_verified:
             logger.warning('User with email=%s is already verified', user.email)
             raise UserAlreadyVerifiedEmail(str(user.email))
 
         await self._otp_service.verify_otp(
-            email=str(user.email),
+            email=str(verify_data.email),
             code=verify_data.otp_code
         )
         logger.info('OTP verified successfully for email=%s', user.email)
