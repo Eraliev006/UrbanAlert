@@ -63,7 +63,7 @@ class UserRepositories(BaseRepository):
         logger.debug('update called for user_id=%d with new_data=%s', user.id, new_data)
         updated_instance = await self.update_instance(
             instance=user,
-            new_data=new_data
+            update_data=new_data
         )
         logger.debug('update result: %s', updated_instance)
         return updated_instance
