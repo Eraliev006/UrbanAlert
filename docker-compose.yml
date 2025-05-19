@@ -1,0 +1,54 @@
+services:
+  backend:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./
+
+    environment:
+      DATABASE__DB_USER: ${database__db_user}
+      DATABASE__DB_NAME: ${database__db_name}
+      DATABASE__DB_PASSWORD: ${database__db_password}
+      DATABASE__DB_HOST: pg
+      DATABASE__DB_PORT: ${database__db_port}
+      REDIS__HOST: redis
+
+    ports:
+      - '8000:8000'
+    depends_on:
+      pg:
+        condition: service_healthy
+
+  pg:
+    image: postgres
+    environment:
+      POSTGRES_DB: ${database__db_name}
+      POSTGRES_USER: ${database__db_user}
+      POSTGRES_PASSWORD: ${database__db_password}
+    ports:
+      - '5050:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.org
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "8080:80"
+    depends_on:
+      pg:
+        condition: service_healthy
+
+  redis:
+    image: redis
+
+volumes:
+  pgdata:
+
