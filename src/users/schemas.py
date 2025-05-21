@@ -21,4 +21,3 @@ class UserRead(BaseUser):
 class UserUpdate(SQLModel):
     username: str
     email: Optional[EmailStr]
-    avatar_url: Optional[str]
