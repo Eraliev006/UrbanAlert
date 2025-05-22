@@ -3,13 +3,16 @@ import os
 import shutil
 from typing import AsyncGenerator
 
-import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlmodel import SQLModel
 
 from src.main import app
+
+# Register my fixtures
+from .unit.user.fixtures import user_repository, user, fake_user
+
 
 @pytest_asyncio.fixture(scope='function')
 async def test_engine():
@@ -28,7 +31,7 @@ async def tmp_database(test_engine):
     async with test_engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.drop_all)
 
-@pytest.fixture(scope='function')
+@pytest_asyncio.fixture(scope='function')
 async def session(test_engine, tmp_database):
     TestingSessionLocal = async_sessionmaker(
         autocommit=False,
@@ -41,7 +44,7 @@ async def session(test_engine, tmp_database):
         await session.rollback()
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest_asyncio.fixture(scope="session", autouse=True)
 def cleanup_test_artifacts():
     yield
 
