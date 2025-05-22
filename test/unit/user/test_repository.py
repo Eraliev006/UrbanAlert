@@ -3,7 +3,6 @@ import pytest
 from src.common import DatabaseError
 from src.users import UserUpdate
 from test import random_lower_string, random_email
-from test.unit.user.fixtures import user_repository, fake_user, user
 
 
 class TestUserRepository:
