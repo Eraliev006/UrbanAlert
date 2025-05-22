@@ -75,7 +75,7 @@ class ComplaintRepositories(BaseRepository):
         logger.debug('Обновление жалобы с ID: %d новыми данными: %s', complaint.id, new_data)
         updated_instance = await self.update_instance(
             instance=complaint,
-            new_data=new_data
+            update_data=new_data
         )
         logger.info('Жалоба с ID %d успешно обновлена', complaint.id)
 
@@ -94,7 +94,8 @@ class ComplaintRepositories(BaseRepository):
     async def get_by_user_id(self, user_id: int) -> list[Complaint]:
         logger.debug('Получение жалоб пользователя с ID: %d', user_id)
         stmt = select(Complaint).where(Complaint.user_id == user_id)
-        complaints = await self.db.scalars(stmt)
+        results = await self.db.scalars(stmt)
+        complaints = results.all()
 
         logger.info('Найдено %d жалоб для пользователя с ID: %d', len(complaints), user_id)
 
