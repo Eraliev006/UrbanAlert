@@ -34,8 +34,8 @@ packages = [{include='src', from='fixkg'}]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "unit: marks tests as unit test. Testing services, repositories and utils",
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+  "unit: marks tests as unit test. Testing services, repositories and utils"
 ]
 
 [tool.poetry.group.test.dependencies]
