@@ -1,14 +1,14 @@
-import pytest
+import pytest_asyncio
 
 from src import Complaint, Comment
 from src.complaints.repositories import ComplaintRepositories
 from test.unit.user.fixtures import user
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def complaint_repository(session):
     return ComplaintRepositories(session)
 
-@pytest.fixture(scope='function')
+@pytest_asyncio.fixture(scope='function')
 async def fake_complaint(user, complaint_repository):
     complaint = Complaint(
         complaint_text='complaint1',
@@ -20,7 +20,7 @@ async def fake_complaint(user, complaint_repository):
     )
     return await complaint_repository.create(complaint)
 
-@pytest.fixture(scope='function')
+@pytest_asyncio.fixture(scope='function')
 async def complaint_with_user_and_comments(complaint_repository, user, fake_complaint, session):
     comments = [
         Comment(
