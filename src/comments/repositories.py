@@ -24,7 +24,7 @@ class CommentRepositories(BaseRepository):
         logger.debug('Getting comments for complaint_id: %d', complaint_id)
         stmt = select(Comment).where(Comment.complaint_id == complaint_id)
         comments = await self.db.scalars(stmt)
-        logger.info('Found %d comments for complaint_id: %d', len(comments), complaint_id)
+        logger.info('Found %d comments for complaint_id: %d', len(list(comments)), complaint_id)
 
         return list(comments)
 
