@@ -12,6 +12,7 @@ from src.main import app
 
 # Register my fixtures
 from .unit.user.fixtures import user_repository, user, fake_user
+from .unit.complaint.complaint_fixtures import  complaint_repository, fake_complaint
 
 
 @pytest_asyncio.fixture(scope='function')
