@@ -57,7 +57,7 @@ class UserService:
         user = await self._user_repo.get_by_id(user_id)
         if not user:
             logger.warning('User not found with id=%d', user_id)
-            logger.info('Calling UserWithIdNotFound exceptions')
+            logger.error('Calling UserWithIdNotFound exceptions')
             raise UserWithIdNotFound(user_id)
 
         logger.info('Returned user by id=%d', user.id)
