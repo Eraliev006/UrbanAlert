@@ -28,11 +28,6 @@ def mock_user_repository():
     return mock_repository
 
 @pytest_asyncio.fixture(scope='function')
-def mock_image_service():
-    mock_image_service = AsyncMock()
-    return mock_image_service
-
-@pytest_asyncio.fixture(scope='function')
 async def user_service(mock_user_repository, mock_image_service):
     return UserService(mock_user_repository,mock_image_service)
 
