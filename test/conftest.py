@@ -2,6 +2,7 @@ import logging
 import os
 import shutil
 from typing import AsyncGenerator
+from unittest.mock import AsyncMock
 
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
@@ -11,8 +12,8 @@ from sqlmodel import SQLModel
 from src.main import app
 
 # Register my fixtures
-from .unit.user.fixtures import user_repository, user, fake_user, user_service, mock_user_repository, mock_image_service, mock_user, mock_user_create, mock_user_update
-from .unit.complaint.complaint_fixtures import  complaint_repository, fake_complaint
+from .unit.user.fixtures import user_repository, user, fake_user, user_service, mock_user_repository, mock_user, mock_user_create, mock_user_update
+from .unit.complaint.complaint_fixtures import  complaint_repository, fake_complaint, mock_complaint_repository, mock_user_service, mock_complaint, mock_complaint_create, complaint_service, mock_complaint_update
 
 
 @pytest_asyncio.fixture(scope='function')
@@ -73,3 +74,8 @@ async def async_client(tmp_database) -> AsyncGenerator[AsyncClient]:
             transport=ASGITransport(app=app), base_url=""
     ) as ac:
         yield ac
+
+@pytest_asyncio.fixture(scope='function')
+def mock_image_service():
+    mock_image_service = AsyncMock()
+    return mock_image_service
