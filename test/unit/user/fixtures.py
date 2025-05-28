@@ -56,3 +56,8 @@ def mock_user_update():
         username="updated_user",
         email="updated@example.com"
     )
+
+@pytest_asyncio.fixture(scope='function')
+async def mock_user_service():
+    service = AsyncMock()
+    return service

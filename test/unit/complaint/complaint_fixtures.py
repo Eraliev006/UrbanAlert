@@ -58,12 +58,6 @@ async def mock_complaint_repository():
     repository = AsyncMock()
     return repository
 
-@pytest_asyncio.fixture(scope='function')
-async def mock_user_service():
-    service = AsyncMock()
-    return service
-
-
 @pytest_asyncio.fixture()
 async def complaint_service(mock_user_service, mock_image_service, mock_complaint_repository) -> ComplaintService:
     return ComplaintService(
