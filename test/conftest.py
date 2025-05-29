@@ -14,7 +14,7 @@ from src.main import app
 # Register my fixtures
 from .unit.user.fixtures import user_repository, user, fake_user, user_service, mock_user_repository, mock_user,mock_user_service, mock_user_create, mock_user_update
 from .unit.complaint.complaint_fixtures import  complaint_repository, fake_complaint, mock_complaint_repository, mock_complaint, mock_complaint_create, complaint_service, mock_complaint_update
-
+from .unit.auth.auth_fixtures import mock_otp_service, mock_token_service, auth_service, mock_login_form_data, mock_verify_email_schema
 
 @pytest_asyncio.fixture(scope='function')
 async def test_engine():
