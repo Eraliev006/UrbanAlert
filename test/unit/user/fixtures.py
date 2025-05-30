@@ -42,6 +42,36 @@ def mock_user():
         created_at = datetime.date.today()
     )
 
+@pytest_asyncio.fixture(scope='function')
+def mock_users_list():
+    return [
+        User(
+            id=1,
+            username="test",
+            email="test@example.com",
+            password="123",
+            avatar_url='',
+            created_at=datetime.date.today()
+        ),
+        User(
+            id=2,
+            username="test2",
+            email="test2@example.com",
+            password="123",
+            avatar_url='',
+            created_at=datetime.date.today()
+        ),
+        User(
+            id=3,
+            username="test3",
+            email="test3@example.com",
+            password="123",
+            avatar_url='',
+            created_at=datetime.date.today()
+        ),
+    ]
+
+
 @pytest_asyncio.fixture
 def mock_user_create():
     return UserCreate(
