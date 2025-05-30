@@ -9,6 +9,7 @@ from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlmodel import SQLModel
 
+from src.core import redis_client, database_helper
 from src.main import app
 
 # Register my fixtures
@@ -68,10 +69,17 @@ def cleanup_test_artifacts():
             logging.warning(f"Could not remove {path}: {e}")
 
 
-@pytest_asyncio.fixture(scope='session')
-async def async_client(tmp_database) -> AsyncGenerator[AsyncClient]:
+
+@pytest_asyncio.fixture(scope='function')
+async def async_client(session) -> AsyncGenerator[AsyncClient]:
+
+    async def override_get_session():
+        yield session
+
+    app.dependency_overrides[database_helper.session_getter] = override_get_session
+
     async with AsyncClient(
-            transport=ASGITransport(app=app), base_url=""
+            transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
         yield ac
 
@@ -79,3 +87,9 @@ async def async_client(tmp_database) -> AsyncGenerator[AsyncClient]:
 def mock_image_service():
     mock_image_service = AsyncMock()
     return mock_image_service
+
+@pytest_asyncio.fixture(scope="function")
+async def redis_connection():
+    await redis_client.connect()
+    yield
+    await redis_client.close()
