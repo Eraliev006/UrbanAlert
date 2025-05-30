@@ -23,7 +23,7 @@ class RedisClient:
         )
 
     async def close(self):
-        await self._client.close()
+        await self._client.aclose()
 
     def _get_client(self) -> redis.Redis:
         if not self._client:
