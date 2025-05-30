@@ -19,5 +19,5 @@ class UserRead(BaseUser):
     created_at: datetime.date
 
 class UserUpdate(SQLModel):
-    username: str
-    email: Optional[EmailStr]
+    username: str | None = None
+    email: Optional[EmailStr] | None = None
