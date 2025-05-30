@@ -21,7 +21,7 @@ class ComplaintRead(ComplaintBase):
     id: int
     user_id: int
     status: ComplaintStatus
-    image_url: str = Field(nullable=True)
+    image_url: str | None = Field(nullable=True)
     created_at: datetime.date
     updated_at: datetime.date
 
