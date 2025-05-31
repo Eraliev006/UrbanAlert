@@ -26,6 +26,7 @@ class UserRepositories(BaseRepository):
         logger.debug('get_all returned %d users', len(result))
         return result
 
+    @db_exception_handler
     async def get_by_username(self, username: str) -> User | None:
         logger.debug('get_by_username called with username=%s', username)
         stmt = select(User).where(User.username == username)
