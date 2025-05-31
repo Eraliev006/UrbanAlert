@@ -3,7 +3,7 @@ import pytest
 from src import ComplaintStatus
 from src.main import app
 from src.core import get_current_user
-from src.complaints import ComplaintCreate, ComplaintUpdate
+from src.complaints import ComplaintUpdate
 
 
 class TestComplaint:
